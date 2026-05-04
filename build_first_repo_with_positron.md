@@ -15,7 +15,7 @@ and re-run.
 - Positron installed and configured with Git
 - Basic familiarity with R
 - GitHub account set up and authenticated from Positron
-- Files provided by the instructor: `iris_anova.R` and `iris_anova.Rmd`
+- Files provided by the instructor: `iris_anova.R` and `iris_anova.qmd`
 
 ## Setting Up the Project Repository
 
@@ -59,7 +59,7 @@ elsewhere):
 ``` bash
 # Copy the script and the notebook into the project
 cp ~/Desktop/ccgarden/iris_anova.R   scripts/
-cp ~/Desktop/ccgarden/iris_anova.Rmd scripts/
+cp ~/Desktop/ccgarden/iris_anova.qmd scripts/
 ```
 
 Your project should now look like:
@@ -70,7 +70,7 @@ Your project should now look like:
     ├── results/
     └── scripts/
         ├── iris_anova.R
-        └── iris_anova.Rmd
+        └── iris_anova.qmd
 
 ### Step 3: Add a `.gitignore`
 
@@ -85,10 +85,12 @@ cat > .gitignore <<'EOF'
 .RData
 .Ruserdata
 
-# Knit / Quarto outputs (regenerated on render)
+# Quarto outputs (regenerated on render)
 *.html
 *_files/
 *_cache/
+/.quarto/
+/_freeze/
 
 # OS
 .DS_Store
@@ -161,9 +163,10 @@ section (`Cmd+Enter` / `Ctrl+Enter`). Watch the **Plots**,
 
 ### Render the notebook
 
-Open `scripts/iris_anova.Rmd` and click **Knit** (top of the editor) to
-render to HTML. The HTML output is gitignored — that’s intentional; the
-source `.Rmd` is the source of truth, and the HTML is a build artifact.
+Open `scripts/iris_anova.qmd` and click **Render** (top of the editor)
+to build the HTML. The HTML output is gitignored — that’s intentional;
+the source `.qmd` is the source of truth, and the HTML is a build
+artifact.
 
 ### Make a change and commit it
 
