@@ -81,13 +81,14 @@ echo "" >> README.md
 echo "A small reproducible analysis: one-way ANOVA + Tukey HSD on iris sepal length." >> README.md
 ```
 
-Then copy the analysis files the instructor provided into the project. From
-the same terminal (adjust the source path if your files are elsewhere):
+Then copy the analysis script into the project. (We'll add the Quarto
+notebook later, as its own commit, so each commit has a single clear
+purpose.) From the same terminal (adjust the source path if your files are
+elsewhere):
 
 ```bash
-# Copy the script and the notebook into the project
-cp ~/Desktop/ccgarden/iris_anova.R   scripts/
-cp ~/Desktop/ccgarden/iris_anova.qmd scripts/
+# Copy the analysis script into the project
+cp ~/Desktop/ccgarden/iris_anova.R scripts/
 ```
 
 Your project should now look like:
@@ -98,8 +99,7 @@ iris_anova/
 ├── data/
 ├── results/
 └── scripts/
-    ├── iris_anova.R
-    └── iris_anova.qmd
+    └── iris_anova.R
 ```
 
 ### Step 3: Add a `.gitignore`
@@ -146,10 +146,34 @@ git status
 git add .
 
 # Commit the initial project state
-git commit -m "Initial commit: project structure and iris analysis"
+git commit -m "Initial commit: project structure and analysis script"
 ```
 
-### Step 5: Create a GitHub repository and connect it
+### Step 5: Add the Quarto notebook as its own commit
+
+Now we'll add the reproducible-document version of the analysis as a
+**separate commit**. Doing it in two steps (script first, notebook second)
+is good Git hygiene: each commit has one clear purpose, which makes the
+history easy to read later.
+
+Copy the `.qmd` into `scripts/` from the same terminal:
+
+```bash
+cp ~/Desktop/ccgarden/iris_anova.qmd scripts/
+```
+
+Stage and commit it on its own:
+
+```bash
+git status                                # confirm only the .qmd is new
+git add scripts/iris_anova.qmd
+git commit -m "Add Quarto notebook version of the analysis"
+```
+
+Run `git log --oneline` and you should see two commits — that's your
+project's history so far.
+
+### Step 6: Create a GitHub repository and connect it
 
 1. Go to [GitHub.com](https://github.com)
 2. Click the **+** icon in the top-right corner
@@ -175,9 +199,9 @@ git push -u origin main
 
 Refresh the GitHub page — you should see the project structure and the README.
 
-### Step 6 (optional, faster): use the GitHub CLI
+### Step 7 (optional, faster): use the GitHub CLI
 
-If you have the GitHub CLI (`gh`) installed and authenticated, steps 5 can
+If you have the GitHub CLI (`gh`) installed and authenticated, step 6 can
 collapse to a single command from inside the project:
 
 ```bash

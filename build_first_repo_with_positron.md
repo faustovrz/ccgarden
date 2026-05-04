@@ -19,22 +19,45 @@ and re-run.
 
 ## Setting Up the Project Repository
 
-### Step 1: Create a new R Project with Git
+### Step 1: Create the project folder and open it in Positron
 
-We’ll start by creating a Positron R project that doubles as a Git
-repository.
+We need one tiny **bootstrap**: an empty folder on disk that we can
+point Positron at. We’ll make it with the file manager (Finder on macOS,
+File Explorer on Windows), and from that point on **everything happens
+inside Positron** — including all terminal commands. That’s the whole
+point of having an integrated terminal: you stop switching windows.
 
-1.  Open **Positron**
-2.  **File → New Project…** (or open the Command Palette with
-    `Cmd+Shift+P` / `Ctrl+Shift+P` and search for *New Project*)
-3.  Select **New R Project**
-4.  Choose a parent directory where the project will live
-5.  Enter **`iris_anova`** as the project (directory) name
-6.  Check **Initialize as Git repository**
-7.  Click **Create**
+1.  **Create the project folder** on your Desktop using your file
+    manager:
 
-Positron will open a fresh window scoped to the new `iris_anova/`
-folder.
+    - **macOS**: open **Finder** → navigate to **Desktop** → right-click
+      → **New Folder** → name it `iris_anova`.
+    - **Windows**: open **File Explorer** → navigate to **Desktop** →
+      right-click → **New → Folder** → name it `iris_anova`.
+
+2.  **Open the folder in Positron**: launch Positron, then **File → Open
+    Folder…** → select `iris_anova`. Positron will reload, scoped to
+    your new (empty) project — you’ll see it as the workspace name in
+    the Explorer pane on the left.
+
+3.  **Open Positron’s integrated terminal**: **View → Terminal**, or
+    `` Cmd+` `` / `` Ctrl+` ``. Notice that the terminal opens *inside*
+    `iris_anova/` automatically — Positron scopes the terminal to the
+    workspace folder. From here on, every command in this tutorial runs
+    in this terminal, not in an external one.
+
+    On Windows the integrated terminal defaults to **PowerShell**; on
+    macOS/Linux it’s **bash** or **zsh**. The commands below work in all
+    three unless noted.
+
+4.  **Initialize Git** in the project:
+
+    ``` bash
+    git init -b main
+    ```
+
+    You should see
+    `Initialized empty Git repository in …/iris_anova/.git/`.
 
 ### Step 2: Set up the folder structure
 
@@ -43,8 +66,10 @@ open the **Terminal** (View → Terminal, or `` Cmd+` `` / `` Ctrl+` ``)
 and run:
 
 ``` bash
-# Create the standard folders
-mkdir -p scripts data results
+# Create the standard folders (one per line works in bash, zsh, and PowerShell)
+mkdir scripts
+mkdir data
+mkdir results
 
 # Create a README.md file
 echo "# Iris ANOVA" > README.md
@@ -75,28 +100,33 @@ Your project should now look like:
 ### Step 3: Add a `.gitignore`
 
 Some files don’t belong in version control (rendered HTML, R history, OS
-junk). Create `.gitignore` in the project root:
+junk). In Positron’s **Explorer** pane (left sidebar), right-click in
+the project root and choose **New File**. Name it `.gitignore` and
+paste:
 
-``` bash
-cat > .gitignore <<'EOF'
-# R
-.Rproj.user/
-.Rhistory
-.RData
-.Ruserdata
+    # R
+    .Rproj.user/
+    .Rhistory
+    .RData
+    .Ruserdata
 
-# Quarto outputs (regenerated on render)
-*.html
-*_files/
-*_cache/
-/.quarto/
-/_freeze/
+    # Quarto outputs (regenerated on render)
+    *.html
+    *_files/
+    *_cache/
+    /.quarto/
+    /_freeze/
 
-# OS
-.DS_Store
-Thumbs.db
-EOF
-```
+    # OS
+    .DS_Store
+    Thumbs.db
+
+Save the file (`Cmd+S` / `Ctrl+S`).
+
+> **Why use the editor instead of the terminal?** Bash supports a
+> “heredoc” trick (`cat > .gitignore <<'EOF' ... EOF`) for writing
+> multi-line files, but PowerShell doesn’t, so creating the file in the
+> editor keeps the tutorial cross-platform.
 
 ### Step 4: Make your first commit
 
