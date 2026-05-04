@@ -1,0 +1,99 @@
+---
+title: "Iris: ANOVA, Tukey HSD, and Compact Letter Display"
+author: "Lab demo"
+date: today
+format:
+  html:
+    toc: true
+    toc-location: left
+    theme: cosmo
+    code-fold: false
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## Question
+
+Do the three *Iris* species differ in **sepal length**, and which pairs
+differ from each other?
+
+## Data
+
+```{r}
+#| label: data
+data(iris)
+summary(iris$Sepal.Length)
+table(iris$Species)
+```
+
+## One-way ANOVA
+
+```{r}
+#| label: anova
+fit <- aov(Sepal.Length ~ Species, data = iris)
+summary(fit)
+```
+
+The species factor is highly significant — at least one species mean differs
+from the others. ANOVA does not tell us *which* pairs differ; for that we use
+Tukey's HSD post-hoc test.
+
+## Tukey HSD
+
+```{r}
+#| label: tukey
+tuk <- TukeyHSD(fit)
+tuk
+```
+
+## Compact letter display
+
+Means that share a letter are not significantly different at $\alpha = 0.05$.
+
+```{r}
+#| label: cld
+library(multcompView)
+
+cld <- multcompLetters4(fit, tuk)
+cld_letters <- cld$Species$Letters
+cld_df <- data.frame(
+  Species = names(cld_letters),
+  cld     = unname(cld_letters)
+)
+cld_df
+```
+
+## Plot with letters
+
+```{r}
+#| label: fig-cld
+#| fig-cap: "Sepal length by *Iris* species. Means sharing a letter are not significantly different (Tukey HSD, α = 0.05)."
+#| fig-width: 6
+#| fig-height: 4
+library(ggplot2)
+
+y_label_pos <- max(iris$Sepal.Length) + 0.4
+
+ggplot(iris, aes(Species, Sepal.Length, fill = Species)) +
+  geom_boxplot(alpha = 0.7, outlier.shape = 1) +
+  geom_text(
+    data = cld_df,
+    aes(x = Species, y = y_label_pos, label = cld),
+    inherit.aes = FALSE, size = 6, fontface = "bold"
+  ) +
+  labs(
+    y = "Sepal length (cm)",
+    x = NULL
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "none")
+```
+
+## Session info
+
+```{r}
+#| label: session
+sessionInfo()
+```
