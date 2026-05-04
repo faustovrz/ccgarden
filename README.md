@@ -1,5 +1,7 @@
 # ccgarden
 
+![Positron running iris_anova.R: editor, Variables pane, and Plots pane all visible at once](Screenshot_ccgarden.png)
+
 A small, walled-garden tutorial for getting an R lab onto **Claude Code** and
 **Positron** — the way you'd onboard a kindergarten class to a new playground:
 slowly, with everything in arm's reach, and one thing at a time.
