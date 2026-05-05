@@ -21,7 +21,7 @@ analysis they "published" themselves.
 
 ## Slide 2: What you'll leave with today
 
-1. Claude Desktop — chat interface for Claude
+1. Claude Desktop app
 2. Positron — the new R IDE from Posit
 3. The Claude extension running inside Positron
 4. A published web URL of the iris ANOVA notebook *under your name*
@@ -35,8 +35,8 @@ analysis they "published" themselves.
 
 You should already have:
 
+- [ ] **Anthropic** account (Pro plan required)
 - [ ] **GitHub** account
-- [ ] **Anthropic** account (Pro plan recommended)
 - [ ] **Posit** account (Google or GitHub OAuth — no fourth password)
 
 > **Notes:** If anyone is missing one, they can sit out the relevant part
@@ -73,7 +73,30 @@ Open Claude Desktop → sign in → ask "what's 2+2?"
 
 ---
 
-## Slide 6: Payoff #1 — Positron meets iris
+## Slide 6: Windows troubleshooting
+
+**Positron won't start R** ("supervisor process exited unexpectedly"):
+
+- Install the **Microsoft Visual C++ Redistributable** (x64):
+  https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist
+- Restart Positron after installing
+
+**`install.packages()` fails in Positron** (can't write to personal library):
+
+- Open **R GUI** (not Positron) once
+- Run `install.packages("rlang")` — pick a CRAN mirror when prompted
+- This creates your personal library folder and sets the mirror
+- After that, package installs work normally in Positron
+
+> **Notes:** Both issues hit Windows users who have never run R before.
+> The VC++ Redistributable is not bundled with Positron. The personal
+> library problem happens because R needs an interactive session to
+> create `~/R/win-library/` and write a default mirror the first time.
+> Walk through these fixes on the projector if anyone is stuck.
+
+---
+
+## Slide 7: Payoff #1 — Positron meets iris
 
 Open `iris_anova.R` from the workshop materials. Step through it
 section by section with **Cmd+Enter** / **Ctrl+Enter**.
@@ -86,12 +109,15 @@ Watch the panes light up:
 - **Outline** — sectioned headers
 
 > **Notes:** This is the "look how nice this IDE is" moment. Linger here
-> 15 minutes. Let them try clicking around. Show off the Data Viewer
-> on `iris` (`View(iris)` or click the row in Variables).
+> 15 minutes. Let them try clicking around. Show off the Data Explorer
+> on `iris` (`View(iris)` or click the row in Variables). Point out the
+> two modes: the **Summary view** opens first and shows column types and
+> distributions; click **"View data table"** to switch to the
+> spreadsheet view where you can sort, filter, and browse rows.
 
 ---
 
-## Slide 7: Payoff #2 — Publish a notebook in 60 seconds
+## Slide 8: Payoff #2 — Publish a notebook in 60 seconds
 
 We'll publish the iris notebook from a pre-built repo to give you a
 public URL *right now*. Later sessions teach how to make it your own.
@@ -109,7 +135,7 @@ public URL *right now*. Later sessions teach how to make it your own.
 
 ---
 
-## Slide 8: What just happened?
+## Slide 9: What just happened?
 
 - Posit Connect Cloud cloned the repo
 - It detected R 4.5.2 from the publisher config
@@ -123,7 +149,7 @@ public URL *right now*. Later sessions teach how to make it your own.
 
 ---
 
-## Slide 9: Payoff #3 — Claude Desktop on a real repo
+## Slide 10: Payoff #3 — Claude Desktop on a real repo
 
 Demo: open Claude Desktop, attach the **sawers-targseq** repo, and ask:
 
@@ -137,7 +163,7 @@ Demo: open Claude Desktop, attach the **sawers-targseq** repo, and ask:
 
 ---
 
-## Slide 10: Recap — what you can do now
+## Slide 11: Recap — what you can do now
 
 - ✅ Run R interactively in a modern IDE
 - ✅ Use Claude Desktop to interrogate code
@@ -154,7 +180,7 @@ What you **can't yet** do (Session 2):
 
 ---
 
-## Slide 11: Before next session
+## Slide 12: Before next session
 
 1. Read the **Prerequisites** section of `set_up_git_for_positron.qmd`
    (link in the workshop repo)
@@ -168,7 +194,7 @@ What you **can't yet** do (Session 2):
 
 ---
 
-## Slide 12: Questions
+## Slide 13: Questions
 
 - Workshop materials: https://github.com/faustovrz/ccgarden
 - Slack channel: [your lab Slack]
