@@ -9,7 +9,7 @@ analysis they "published" themselves.
 
 ## 1. Welcome
 
-- Two-session workshop on bringing AI into our R workflow
+- Two-session workshop on bringing AI into an R workflow
 - Today: install + first taste
 - Next time: own the workflow (Git, Quarto, Claude Desktop)
 
@@ -223,9 +223,12 @@ Publish `iris_pca.qmd` to Connect Cloud and share your URL.
 
 Ask Claude to build an HTML page showing everyone's notebooks:
 
-> Make an HTML page with a two-column layout. The left column has the
-> person's name, the right column has an iframe of their Connect Cloud
-> URL. Here are the names and URLs: [paste list]
+```
+Make an HTML page with two frames. The left frame is narrow, just
+wide enough for a list of names. Each name is a hyperlink. Clicking
+a name loads that person's Connect Cloud notebook URL in the right
+frame as an iframe. Here are the names and URLs: [paste list]
+```
 
 > **Notes:** Build this live on the projector. The collective gallery is
 > the "wow" closer - everyone sees their AI-generated analysis side by
