@@ -23,8 +23,7 @@ analysis they "published" themselves.
 
 1. Claude Desktop app
 2. Positron — the new R IDE from Posit
-3. Claude Code + the Claude extension running inside Positron
-4. A published web URL of the iris ANOVA notebook *under your name*
+3. A published web URL of the iris ANOVA notebook *under your name*
 
 > **Notes:** Lead with the deliverables, not the tools. The URL is the
 > "wow" — show one of yours on screen.
@@ -51,11 +50,14 @@ You should already have:
    (includes Git Bash — when asked about line endings, pick
    **"Checkout as-is, commit Unix-style line endings"** so
    `core.autocrlf` is set to `input`)
+
 2. **R** — [cran.r-project.org](https://cran.r-project.org)
    After installing, open **R GUI** → pick a CRAN mirror →
    run `install.packages("ggplot2")`
+
 3. **VC++ Redistributable** (x64) —
    [aka.ms/vc14/vc_redist.x64.exe](https://aka.ms/vc14/vc_redist.x64.exe)
+
 4. **Positron** — [positron.posit.co](https://positron.posit.co)
    - Optional: set dark theme — **File → Preferences → Workbench →
      Appearance → Color Theme → Positron Dark**
@@ -63,17 +65,11 @@ You should already have:
    - Set default terminal — open Command Palette (**Ctrl+Shift+P**),
      type `Terminal: Select Default Profile`, select **Git Bash**.
      Close the terminal, close Positron, then restart Positron.
+
 5. **Claude Desktop** — [anthropic.com/desktop](https://anthropic.com/desktop)
    Optional: set dark theme — **Settings (gear icon) → Appearance → Dark**
-6. **Node.js** (LTS) — [nodejs.org](https://nodejs.org)
-7. **Claude Code** — open Git Bash and run:
-   `npm install -g @anthropic-ai/claude-code`
-8. **Claude extension** for Positron — from the Extensions marketplace
 
 > **Notes:** Install everything as **64-bit** (R, Git, VC++, Positron).
-> Node.js is required by Claude Code. Claude Code is required by the
-> Claude extension for Positron — the extension is just a UI that talks
-> to the CLI.
 > Order matters on Windows. Git for Windows gives us Git Bash,
 > which we'll set as the default terminal in Positron so all shell commands
 > match Mac/Linux. Installing ggplot2 from R GUI before Positron
@@ -96,15 +92,11 @@ You should already have:
      type `Terminal: Select Default Profile`, select **zsh**.
 4. **Claude Desktop** — [anthropic.com/desktop](https://anthropic.com/desktop)
    Optional: set dark theme — **Settings (gear icon) → Appearance → Dark**
-5. **Node.js** (LTS) — `brew install node` or [nodejs.org](https://nodejs.org)
-6. **Claude Code** — in the terminal, run:
-   `npm install -g @anthropic-ai/claude-code`
-7. **Claude extension** for Positron — from the Extensions marketplace
 
 > **Notes:** Mac doesn't need VC++ Redistributable or Git Bash — Git
 > and zsh come pre-installed. iTerm2 is optional but gives a better
-> terminal experience outside of Positron. Node.js is required by
-> Claude Code, and Claude Code is required by the Claude extension.
+> terminal experience outside of Positron. Steps 3–4 are the same as
+> Windows.
 
 ---
 
