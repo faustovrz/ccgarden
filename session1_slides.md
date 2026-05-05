@@ -23,7 +23,7 @@ analysis they "published" themselves.
 
 1. Claude Desktop app
 2. Positron — the new R IDE from Posit
-3. The Claude extension running inside Positron
+3. Claude Code + the Claude extension running inside Positron
 4. A published web URL of the iris ANOVA notebook *under your name*
 
 > **Notes:** Lead with the deliverables, not the tools. The URL is the
@@ -65,9 +65,15 @@ You should already have:
      Close the terminal, close Positron, then restart Positron.
 5. **Claude Desktop** — [anthropic.com/desktop](https://anthropic.com/desktop)
    Optional: set dark theme — **Settings (gear icon) → Appearance → Dark**
-6. **Claude extension** for Positron — from the Extensions marketplace
+6. **Node.js** (LTS) — [nodejs.org](https://nodejs.org)
+7. **Claude Code** — open Git Bash and run:
+   `npm install -g @anthropic-ai/claude-code`
+8. **Claude extension** for Positron — from the Extensions marketplace
 
 > **Notes:** Install everything as **64-bit** (R, Git, VC++, Positron).
+> Node.js is required by Claude Code. Claude Code is required by the
+> Claude extension for Positron — the extension is just a UI that talks
+> to the CLI.
 > Order matters on Windows. Git for Windows gives us Git Bash,
 > which we'll set as the default terminal in Positron so all shell commands
 > match Mac/Linux. Installing ggplot2 from R GUI before Positron
@@ -90,12 +96,15 @@ You should already have:
      type `Terminal: Select Default Profile`, select **zsh**.
 4. **Claude Desktop** — [anthropic.com/desktop](https://anthropic.com/desktop)
    Optional: set dark theme — **Settings (gear icon) → Appearance → Dark**
-5. **Claude extension** for Positron — from the Extensions marketplace
+5. **Node.js** (LTS) — `brew install node` or [nodejs.org](https://nodejs.org)
+6. **Claude Code** — in the terminal, run:
+   `npm install -g @anthropic-ai/claude-code`
+7. **Claude extension** for Positron — from the Extensions marketplace
 
 > **Notes:** Mac doesn't need VC++ Redistributable or Git Bash — Git
 > and zsh come pre-installed. iTerm2 is optional but gives a better
-> terminal experience outside of Positron. Steps 3–5 are the same as
-> Windows.
+> terminal experience outside of Positron. Node.js is required by
+> Claude Code, and Claude Code is required by the Claude extension.
 
 ---
 
@@ -174,15 +183,17 @@ Compare:
 
 Open **Claude Desktop → Code tab** and paste this prompt:
 
-> Create a Quarto notebook called `iris_pca.qmd` in my `iris-test`
-> folder that does the following with the built-in iris dataset in R:
->
-> 1. Load the iris data
-> 2. Standardize the features (mean=0, variance=1)
-> 3. Run PCA on the four numeric columns
-> 4. Plot PC1 vs PC2, colored by species
->
-> Use ggplot2 for the plot.
+```
+Create a Quarto notebook called iris_pca.qmd in my iris-test
+folder that does the following with the built-in iris dataset in R:
+
+1. Load the iris data
+2. Standardize the features (mean=0, variance=1)
+3. Run PCA on the four numeric columns
+4. Plot PC1 vs PC2, colored by species
+
+Use ggplot2 for the plot.
+```
 
 Wait for Claude to write the file, then open it in Positron and
 render it (**Cmd+Shift+K** / **Ctrl+Shift+K**).
