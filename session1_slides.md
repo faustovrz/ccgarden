@@ -209,6 +209,11 @@ Compare:
   their output (tables, figures) inline. The artifact itself is the
   record of the analysis.
 
+Allow for inline output in quarto:
+
+Preferences: Open Workspace Settings 
+Positron >Quarto >Inline Output: Enabled
+
 > **Notes:** Show them the same analysis in both formats. Both can be
 > stepped through one line at a time while exploring; the difference is
 > the finished artifact, a program you run versus a document you
