@@ -2,9 +2,9 @@
 
 **Audience:** same lab colleagues, after Session 1.
 **Duration:** ~90 min
-**Goal:** Everyone leaves with their *own* GitHub repo containing a
-Quarto notebook they can edit and republish, having used Claude Code
-inside Positron at least once.
+**Goal:** Everyone leaves with their `iris-test` project under Git version
+control, pushed to GitHub, published from the repo, and having used Claude
+Code in the terminal at least once.
 
 ---
 
@@ -12,15 +12,17 @@ inside Positron at least once.
 
 Recap from Session 1:
 
-- Tools installed and verified
-- Positron's IDE features felt out
-- Claude Desktop interrogated `sawers-targseq`
-- Published someone else's notebook to your Connect Cloud account
+- Positron installed and explored
+- Claude Desktop Code tab used to generate `iris_pca.qmd`
+- Published `iris_anova.qmd` and `iris_pca.qmd` to Connect Cloud from the IDE
+- `~/Desktop/iris-test` folder with `iris_anova.R`, `iris_anova.qmd`, `iris_pca.qmd`
 
-Today: **make it your own.**
+Today: **add Git to the workflow** — version control, GitHub, and Claude Code
+in the terminal.
 
-> **Notes:** Frame as ownership transfer. Last time you "rented" a URL;
-> today you build the whole stack from your own GitHub.
+> **Notes:** Frame as upgrading from manual publish to a durable pipeline.
+> Session 1 proved the tools work; Session 2 gives them a repeatable workflow
+> for any future project.
 
 ---
 
@@ -36,27 +38,27 @@ Today: **make it your own.**
 
 ---
 
-## Slide 3: The two tutorials we'll work through
-
-1. **`set_up_git_for_positron.qmd`** — install + configure + auth
-2. **`build_first_repo_with_positron.qmd`** — make your own iris ANOVA repo
-
-Both live at https://github.com/faustovrz/ccgarden — open them now.
-
-> **Notes:** They follow along on their own laptops; you project the
-> tutorial on the screen. Pause at every numbered step to make sure
-> nobody's stuck.
-
----
-
-## Slide 4: Git setup — the human bits
+## Slide 3: Git setup — configure identity and PAT
 
 From `set_up_git_for_positron.qmd`:
 
-- Tell Git who you are (`use_git_config`)
-- Make a GitHub Personal Access Token (PAT)
-- Store the PAT in `.Renviron` so commands don't keep asking
-- Restart R and verify with `git_sitrep()`
+1. Tell Git who you are:
+   ```r
+   usethis::use_git_config(user.name = "Your Name", user.email = "you@email.com")
+   ```
+2. Create a GitHub Personal Access Token:
+   ```r
+   usethis::create_github_token()
+   ```
+3. Store the PAT in `.Renviron`:
+   ```r
+   usethis::edit_r_environ()
+   # Add: GITHUB_PAT=ghp_xxxxxxxxxxxx
+   ```
+4. Restart R, then verify:
+   ```r
+   usethis::git_sitrep()
+   ```
 
 > **Notes:** This is the slowest part — budget 25 min. The PAT step
 > trips people up: it has to be copied *immediately* because GitHub
@@ -64,144 +66,181 @@ From `set_up_git_for_positron.qmd`:
 
 ---
 
-## Slide 5: Build your first repo — the bootstrap
+## Slide 4: Turn iris-test into a Git repo
 
-From `build_first_repo_with_positron.qmd`:
-
-1. Make an empty `iris_anova` folder on your Desktop (Finder/Explorer)
-2. Open it in Positron
-3. Open the integrated terminal — note it's already inside `iris_anova/`
-4. `git init -b main`
-
-> **Notes:** This is the moment to introduce "everything happens inside
-> Positron from here on." Bootstrap once with the file manager, then
-> stay in the IDE.
-
----
-
-## Slide 6: Build your first repo — folder structure
+You already have `~/Desktop/iris-test` from Session 1. Open it in Positron
+(if not already open), then in the integrated terminal:
 
 ```bash
-mkdir scripts
-mkdir data
-mkdir results
-
-echo "# Iris ANOVA" > README.md
-cp ~/Desktop/ccgarden/iris_anova.R scripts/
+git init -b main
+git status
 ```
 
-Then create `.gitignore` in the editor (right-click → New File).
+You should see your three files as untracked:
 
-> **Notes:** Walk through *why* each folder exists. `data/` is empty
-> here because iris is built into R, but it's there as a placeholder
-> for future projects.
+```
+iris_anova.R
+iris_anova.qmd
+iris_pca.qmd
+```
+
+> **Notes:** Point out that `git status` is their diagnostic tool — run it
+> whenever unsure about the state. The Source Control panel in Positron will
+> also light up once Git is initialized.
 
 ---
 
-## Slide 7: Two commits, one for each idea
-
-Commit 1 — the project skeleton + analysis script:
+## Slide 5: First commit — the project as-is
 
 ```bash
 git add .
-git commit -m "Initial commit: project structure and analysis script"
+git commit -m "Initial commit: iris ANOVA analysis and PCA notebook"
+git log --oneline
 ```
 
-Commit 2 — add the Quarto notebook on its own:
+One commit, three files — everything from Session 1 is now safely versioned.
 
-```bash
-cp ~/Desktop/ccgarden/iris_anova.qmd scripts/
-git add scripts/iris_anova.qmd
-git commit -m "Add Quarto notebook version of the analysis"
-```
-
-> **Notes:** This is the "good Git hygiene" lesson. Two commits, two
-> clear purposes. `git log --oneline` shows two readable lines.
+> **Notes:** Emphasize that this captures the *known-good* state from
+> Session 1. If anything breaks from here, they can always get back.
 
 ---
 
-## Slide 8: Push to GitHub
+## Slide 6: Push to GitHub
 
-Either the manual way:
+With the GitHub CLI (one-liner):
 
 ```bash
-git remote add origin https://github.com/YOU/iris_anova.git
+gh repo create iris-test --public --source=. --remote=origin --push
+```
+
+Or the manual way:
+
+```bash
+git remote add origin https://github.com/YOU/iris-test.git
 git branch -M main
 git push -u origin main
 ```
 
-…or the one-line way with the GitHub CLI:
+Refresh your GitHub page — your files are there.
 
-```bash
-gh repo create iris_anova --public --source=. --remote=origin --push
-```
-
-> **Notes:** Show both. The CLI version is faster but requires
-> `gh auth login` (covered in the Git setup tutorial). Refresh the
-> GitHub page so they see their own repo appear.
+> **Notes:** The CLI version requires `gh auth login` (covered in the Git
+> setup tutorial). Show both; use whichever is less scary for the group.
 
 ---
 
-## Slide 9: Re-publish — but now it's your repo
+## Slide 7: Republish from GitHub
 
-Same flow as Session 1:
+In Session 1 you published from the IDE. Now publish from the repo:
 
 1. connect.posit.cloud → **New Content → Publish from Git Repository**
-2. Pick your new `YOU/iris_anova` repo
-3. Pick `scripts/iris_anova.qmd`
-4. Publish → URL
+2. Pick your `YOU/iris-test` repo
+3. Pick `iris_anova.qmd`
+4. Publish → new URL
 
-> **Notes:** Closes the loop from Session 1. Same publishing flow,
-> different repo — it's theirs now. Have them post their URL in Slack.
+From now on, every `git push` triggers a re-render — the URL stays current
+without manual republishing.
+
+> **Notes:** This is the payoff of adding Git. They already know how to
+> publish; now the *source of truth* is the repo, not the local file.
 
 ---
 
-## Slide 10: Claude Code inside Positron — the demo
+## Slide 8: Install Claude Code
 
-Open the Claude extension in Positron's sidebar. Ask:
+Prerequisites: Node.js must be installed first.
 
-> "Add a second analysis to `iris_anova.qmd` that does the same ANOVA on
-> `Petal.Length` instead of `Sepal.Length`. Keep it as a new section."
+- **Mac:** `brew install node` or download from https://nodejs.org
+- **Windows:** download installer from https://nodejs.org
+
+Then install Claude Code:
+
+```bash
+npm install -g @anthropic-ai/claude-code
+```
+
+Verify it works:
+
+```bash
+claude --version
+```
+
+> **Notes:** If anyone already has Node.js, they can skip straight to
+> the npm install. Have them run `node --version` to check. Claude Code
+> requires Node 18+.
+
+---
+
+## Slide 9: Claude Code — edit and commit
+
+In the Positron terminal, from inside `iris-test/`:
+
+```bash
+claude
+```
+
+Then prompt Claude Code:
+
+> "Add a Petal.Length ANOVA section to iris_anova.qmd"
 
 Watch Claude:
 
 - Read the existing `.qmd`
-- Propose a diff
-- You accept, the file changes, you save
+- Propose changes
+- You accept → file is updated
 
-Then in the terminal:
+Then back in the terminal:
 
 ```bash
-git status
 git diff
-git add scripts/iris_anova.qmd
-git commit -m "Add Petal.Length analysis"
+git add iris_anova.qmd
+git commit -m "Add Petal.Length ANOVA section"
 git push
 ```
 
+Refresh your Connect Cloud URL — new section appears.
+
 > **Notes:** This is the headline moment of Session 2. Claude wrote
-> code, they reviewed it, they pushed it. Connect Cloud re-renders
-> automatically — refresh the URL, see the new section live.
+> code, they reviewed it, they pushed it, and the published page updated
+> automatically. The full loop in one shot.
 
 ---
 
-## Slide 11: Where to go from here
+## Slide 10: The full loop
 
-- **Use this pattern in your own work**: `git init` + Claude Code = a
-  durable workflow for any new analysis
-- **Read** the references at the bottom of each tutorial
-- **Office hours** weekly for Git/Claude questions
-- **Deeper Claude Code** — see the Anthropic docs (link in repo)
+```
+Edit with Claude Code → review diff → commit → push → URL updates
+```
+
+This is the workflow for any future analysis:
+
+1. Open your project in Positron
+2. Run `claude` in the terminal
+3. Ask for what you need
+4. Review, commit, push
+5. Your published notebook updates automatically
+
+> **Notes:** Reinforce that every step is reversible. `git diff` before
+> committing, `git revert` if something goes wrong. The safety net is
+> always there.
+
+---
+
+## Slide 11: Recap — what you can do now
+
+- ✅ Version-control your R projects with Git
+- ✅ Push to GitHub and publish from a repo
+- ✅ Use Claude Code in the terminal to edit code
+- ✅ The edit → commit → push → publish loop
 
 > **Notes:** End on momentum. Don't try to teach more features — point
 > at where to learn next.
 
 ---
 
-## Slide 12: Questions
+## Slide 12: Questions + where to go from here
 
 - Workshop materials: https://github.com/faustovrz/ccgarden
-- Slack channel: [your lab Slack]
+- Tutorials: `set_up_git_for_positron.qmd` and `build_first_repo_with_positron.qmd`
 - Office hours: [your slot]
 
 Stick around afterwards if you want help getting your *real* project on

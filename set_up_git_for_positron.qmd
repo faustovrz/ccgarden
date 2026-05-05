@@ -84,7 +84,7 @@ if (!requireNamespace("usethis", quietly = TRUE)) {
 
 # Set your Git username and email
 # Replace with your actual name and email
-usethis::use_git_config(user.name = "Fausto Rodríguez Zapata", user.email = "faustovrz@gmail.com")
+usethis::use_git_config(user.name = "John Doe", user.email = "jdoe@mail.com")
 ```
 
 Your Git commits will be associated with this name and email.
