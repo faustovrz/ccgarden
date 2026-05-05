@@ -224,12 +224,15 @@ Allow for inline output in quarto:
 ## 10. Payoff #2 - Publish to Connect Cloud
 
 1. In the R console: `install.packages("rsconnect")`
-2. With `iris_anova.qmd` open, click the **Publish** button (top-right)
-3. Sign in to [connect.posit.cloud](https://connect.posit.cloud)
-4. **Publish** > get a URL
+2. Hit the **Preview** button on the top-left of the editor to render the document. The rendered HTML will appear in the Viewer pane.
+3. With the **rendered HTML file** open in the editor, click the **Publish** button (top-right).
+4. Sign in to [connect.posit.cloud](https://connect.posit.cloud)
+5. Press **Deploy with Posit Publisher**. Be aware of the command bar!
+6. Authenticate.
+7. In the command bar: give a title for the notebook and your account alias.
+8. The editor will open a panel on the left — click **Deploy Your Project**.
 
-> **Notes:** Live demo this on the projector. Each person gets their own
-> URL under their own Connect Cloud account.
+> **Notes:** Live demo this on the projector. Each person gets their own URL under their own Connect Cloud account. Make sure to publish from the **rendered HTML**, not the `.qmd` — publishing from the `.qmd` requires additional R version configuration.
 
 ---
 
