@@ -48,17 +48,27 @@ You should already have:
 ## Slide 4: The installs (Windows)
 
 1. **Git for Windows** — gitforwindows.org
-   (includes Git Bash — accept defaults during install)
+   (includes Git Bash — when asked about line endings, pick
+   **"Checkout as-is, commit Unix-style line endings"** so
+   `core.autocrlf` is set to `input`)
 2. **R** — cran.r-project.org
-3. **ggplot2** — open R GUI, pick a CRAN mirror, run
-   `install.packages("ggplot2")`
-4. **VC++ Redistributable** (x64) —
-   https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist
-5. **Positron** — positron.posit.co
-6. **Claude Desktop** — anthropic.com/desktop
-7. **Claude extension** for Positron — from the Extensions marketplace
+   After installing, open **R GUI** → pick a CRAN mirror →
+   run `install.packages("ggplot2")`
+3. **VC++ Redistributable** (x64) —
+   https://aka.ms/vc14/vc_redist.x64.exe
+4. **Positron** — positron.posit.co
+   - Optional: set dark theme — **File → Preferences → Workbench →
+     Appearance → Color Theme → Positron Dark**
+     (or search `color theme` in Settings)
+   - Set default terminal — open Command Palette (**Ctrl+Shift+P**),
+     type `Terminal: Select Default Profile`, select **Git Bash**.
+     Close the terminal, close Positron, then restart Positron.
+5. **Claude Desktop** — anthropic.com/desktop
+   Optional: set dark theme — **Settings (gear icon) → Appearance → Dark**
+6. **Claude extension** for Positron — from the Extensions marketplace
 
-> **Notes:** Order matters on Windows. Git for Windows gives us Git Bash,
+> **Notes:** Install everything as **64-bit** (R, Git, VC++, Positron).
+> Order matters on Windows. Git for Windows gives us Git Bash,
 > which we'll set as the default terminal in Positron so all shell commands
 > match Mac/Linux. Installing ggplot2 from R GUI before Positron
 > bootstraps the personal library folder and sets a CRAN mirror — without
@@ -84,34 +94,29 @@ Open Claude Desktop → sign in → ask "what's 2+2?"
 
 ---
 
-## Slide 6: Configure Positron's terminal
+## Slide 6: Create the project folder
 
-Set the default terminal shell in Positron:
+Open the terminal in Positron and run:
 
-**Windows:**
+```bash
+mkdir ~/Desktop/iris-test
+ls ~/Desktop
+cd ~/Desktop/iris-test
+touch iris_anova.R
+ls
+```
 
-1. Open Settings (**Ctrl+,**)
-2. Search for `terminal default profile windows`
-3. Select **Git Bash**
+Then **File → Open Folder → `iris-test`**.
 
-**Mac:**
-
-1. Open Settings (**Cmd+,**)
-2. Search for `terminal default profile osx`
-3. Select **zsh**
-
-> **Notes:** This is why we installed Git for Windows first on Windows.
-> Without it, Positron opens PowerShell and all the `ls`, `cd`, `mkdir`
-> instructions need Windows-specific alternatives. On Mac, zsh is the
-> default system shell and should already be selected — confirm it if
-> anyone's terminal looks different. Confirm everyone sees "bash" or
-> "zsh" in the terminal dropdown before moving on.
+> **Notes:** This confirms Git Bash is working. The `iris-test` folder
+> becomes their working directory for Session 2 as well. On Mac the
+> commands are identical since zsh uses the same syntax.
 
 ---
 
 ## Slide 7: Payoff #1 — Positron meets iris
 
-Open `iris_anova.R` from the workshop materials. Step through it
+Open `iris_anova.R` from the `iris-test` folder. Step through it
 section by section with **Cmd+Enter** / **Ctrl+Enter**.
 
 Watch the panes light up:
