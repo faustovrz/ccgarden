@@ -32,11 +32,16 @@ analysis they "published" themselves.
 
 ## 3. Pre-meeting accounts checklist
 
-You should already have:
+Use your UnityID email when possible.
 
 - [ ] **Anthropic** account (Pro plan required)
+  [claude.ai](https://claude.ai)
+
 - [ ] **GitHub** account
+  [github.com](https://github.com)
+
 - [ ] **Posit** account (Google or GitHub OAuth, no fourth password)
+  [connect.posit.cloud](https://connect.posit.cloud)
 
 > **Notes:** If anyone is missing one, they can sit out the relevant part
 > rather than block the room. Have your laptop ready to demo what each
@@ -75,6 +80,7 @@ You should already have:
 5. **Claude Desktop**
    [anthropic.com/desktop](https://anthropic.com/desktop)
 
+   Log in with your NCSU Gmail account.
    Optional: set dark theme - **Settings (gear icon) > Appearance > Dark**
 
 > **Notes:** Install everything as **64-bit** (R, Git, VC++, Positron).
@@ -109,6 +115,7 @@ You should already have:
 4. **Claude Desktop**
    [anthropic.com/desktop](https://anthropic.com/desktop)
 
+   Log in with your NCSU Gmail account.
    Optional: set dark theme - **Settings (gear icon) > Appearance > Dark**
 
 > **Notes:** Mac doesn't need VC++ Redistributable or Git Bash - Git
@@ -256,7 +263,7 @@ frame as an iframe. Here are the names and URLs: [paste list]
 
 ## 13. Recap - what you can do now
 
-- ✅ Run R interactively in a modern IDE
+- ✅ Run R interactively in an IDE based on VS Code
 - ✅ Use Claude to generate a complete R analysis
 - ✅ Publish to a public URL under your name
 
