@@ -9,6 +9,8 @@ slowly, with everything in arm's reach, and one thing at a time.
 The materials are designed for a **two-session lab workshop**, but each file
 also stands on its own.
 
+**Demo project:** [faustovrz/iris-test](https://github.com/faustovrz/iris-test) — the analysis files participants create and publish during the workshop.
+
 ## Who this is for
 
 R users who:
@@ -27,26 +29,26 @@ You do **not** need to know Quarto, GitHub, or any LLM tooling beforehand.
 
 Install the tools and get one quick win in each.
 
-1. Install **Claude Desktop**, **R**, **Positron**, and the **Claude Code**
-   CLI (or the Claude VS Code extension that runs in Positron).
-2. **Payoff A:** open Claude Desktop and ask it something domain-relevant.
-3. **Payoff B:** open `iris_anova.R` in Positron and step through it
-   interactively — see the **Plots**, **Variables**, **Help**, and **Data
-   Viewer** panes light up.
+1. Install **Claude Desktop**, **R**, **Positron**, and the **Claude extension**
+   for Positron.
+2. **Payoff A:** step through `iris_anova.R` in Positron — see the **Plots**,
+   **Variables**, **Help**, and **Data Explorer** panes light up.
+3. **Payoff B:** render `iris_anova.qmd` and publish it to
+   [Posit Connect Cloud](https://connect.posit.cloud).
+4. **Payoff C:** use Claude Desktop to generate `iris_pca.qmd`, render it,
+   and publish.
 
-### Session 2 — Real reproducible workflow (~90 min)
+### Session 2 — Git and the prompt-to-publish loop (~90 min)
 
-Wrap the analysis into a version-controlled project, push it to GitHub, and
-publish the rendered notebook.
+Add version control to the project, push to GitHub, and use Claude Desktop
+to edit, commit, and push — with the published page updating automatically.
 
 1. Walk through [`set_up_git_for_positron.qmd`](set_up_git_for_positron.qmd)
    to configure Git and a GitHub Personal Access Token.
-2. Walk through [`build_first_repo_with_positron.qmd`](build_first_repo_with_positron.qmd)
-   to create a Positron R project, lay out folders, and push to GitHub.
-3. Render `iris_anova.qmd` and publish it on
-   [Posit Connect Cloud](https://connect.posit.cloud) for a public URL.
-4. Use Claude Code (terminal or extension) to make a small change to the
-   analysis, then commit and push.
+2. Turn the `iris-test` folder into a Git repo, commit, and push to GitHub.
+3. Publish from the GitHub repo on Connect Cloud (auto-updates on push).
+4. Use Claude Desktop to edit the notebook, commit, and push — the published
+   page updates without manual republishing.
 
 ## Files in this repo
 
@@ -55,9 +57,8 @@ publish the rendered notebook.
 | [`set_up_git_for_positron.qmd`](set_up_git_for_positron.qmd) | Tutorial: install Git, configure name/email, create and store a GitHub PAT |
 | [`build_first_repo_with_positron.qmd`](build_first_repo_with_positron.qmd) | Tutorial: create an R project in Positron, set up a folder structure, first commit, push to GitHub |
 | [`build_first_repo_with_positron.md`](build_first_repo_with_positron.md) | Rendered (GitHub-readable) version of the tutorial above |
-| [`iris_anova.R`](iris_anova.R) | Plain R script for demoing Positron's IDE features |
-| [`iris_anova.qmd`](iris_anova.qmd) | Quarto notebook of the same analysis — publish-ready |
-| [`iris_anova.Rmd`](iris_anova.Rmd) | R Markdown legacy version, kept for comparison |
+
+The analysis files (`iris_anova.R`, `iris_anova.qmd`, `iris_anova.Rmd`) live in the companion repo [faustovrz/iris-test](https://github.com/faustovrz/iris-test).
 
 ## Prerequisites checklist
 
@@ -70,13 +71,6 @@ also a signup party:
 - [ ] **Posit account** at [connect.posit.cloud](https://connect.posit.cloud) —
       sign in with Google or GitHub to skip a fourth password
 - [ ] All three passwords/sessions accessible at the start of the workshop
-
-## The analysis itself
-
-A one-way ANOVA on `iris$Sepal.Length` by `Species`, followed by Tukey HSD
-post-hoc tests and a compact letter display rendered on a boxplot. The
-science is intentionally trivial — the point is the **workflow**, not the
-statistics.
 
 ## License
 

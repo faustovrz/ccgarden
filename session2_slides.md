@@ -132,7 +132,7 @@ Refresh your GitHub page — your files are there.
 
 In Session 1 you published from the IDE. Now publish from the repo:
 
-1. connect.posit.cloud → **New Content → Publish from Git Repository**
+1. [connect.posit.cloud](https://connect.posit.cloud) → **New Content → Publish from Git Repository**
 2. Pick your `YOU/iris-test` repo
 3. Pick `iris_anova.qmd`
 4. Publish → new URL
@@ -214,7 +214,7 @@ You check the results in Positron whenever you want.
 
 ## Slide 12: Questions + where to go from here
 
-- Workshop materials: https://github.com/faustovrz/ccgarden
+- Workshop materials: [github.com/faustovrz/ccgarden](https://github.com/faustovrz/ccgarden)
 - Tutorials: `set_up_git_for_positron.qmd` and `build_first_repo_with_positron.qmd`
 - Office hours: [your slot]
 

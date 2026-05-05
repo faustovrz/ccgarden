@@ -47,23 +47,23 @@ You should already have:
 
 ## Slide 4: The installs (Windows 11)
 
-1. **Git for Windows** — gitforwindows.org
+1. **Git for Windows** — [gitforwindows.org](https://gitforwindows.org)
    (includes Git Bash — when asked about line endings, pick
    **"Checkout as-is, commit Unix-style line endings"** so
    `core.autocrlf` is set to `input`)
-2. **R** — cran.r-project.org
+2. **R** — [cran.r-project.org](https://cran.r-project.org)
    After installing, open **R GUI** → pick a CRAN mirror →
    run `install.packages("ggplot2")`
 3. **VC++ Redistributable** (x64) —
-   https://aka.ms/vc14/vc_redist.x64.exe
-4. **Positron** — positron.posit.co
+   [aka.ms/vc14/vc_redist.x64.exe](https://aka.ms/vc14/vc_redist.x64.exe)
+4. **Positron** — [positron.posit.co](https://positron.posit.co)
    - Optional: set dark theme — **File → Preferences → Workbench →
      Appearance → Color Theme → Positron Dark**
      (or search `color theme` in Settings)
    - Set default terminal — open Command Palette (**Ctrl+Shift+P**),
      type `Terminal: Select Default Profile`, select **Git Bash**.
      Close the terminal, close Positron, then restart Positron.
-5. **Claude Desktop** — anthropic.com/desktop
+5. **Claude Desktop** — [anthropic.com/desktop](https://anthropic.com/desktop)
    Optional: set dark theme — **Settings (gear icon) → Appearance → Dark**
 6. **Claude extension** for Positron — from the Extensions marketplace
 
@@ -80,15 +80,15 @@ You should already have:
 
 ## Slide 5: The installs (Mac)
 
-1. **iTerm2** — iterm2.com (recommended terminal replacement)
-2. **R** — cran.r-project.org
-3. **Positron** — positron.posit.co
+1. **iTerm2** — [iterm2.com](https://iterm2.com) (recommended terminal replacement)
+2. **R** — [cran.r-project.org](https://cran.r-project.org)
+3. **Positron** — [positron.posit.co](https://positron.posit.co)
    - Optional: set dark theme — **File → Preferences → Workbench →
      Appearance → Color Theme → Positron Dark**
      (or search `color theme` in Settings)
    - Set default terminal — open Command Palette (**Cmd+Shift+P**),
      type `Terminal: Select Default Profile`, select **zsh**.
-4. **Claude Desktop** — anthropic.com/desktop
+4. **Claude Desktop** — [anthropic.com/desktop](https://anthropic.com/desktop)
    Optional: set dark theme — **Settings (gear icon) → Appearance → Dark**
 5. **Claude extension** for Positron — from the Extensions marketplace
 
@@ -243,7 +243,7 @@ What you **can't yet** do (Session 2):
 
 ## Slide 14: Questions
 
-- Workshop materials: https://github.com/faustovrz/ccgarden
+- Workshop materials: [github.com/faustovrz/ccgarden](https://github.com/faustovrz/ccgarden)
 - Slack channel: [your lab Slack]
 - Office hours before Session 2: [your slot]
 
