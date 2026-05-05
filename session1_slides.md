@@ -211,8 +211,8 @@ Compare:
 
 Allow for inline output in quarto:
 
-Preferences: Open Workspace Settings 
-Positron >Quarto >Inline Output: Enabled
+- **(Cmd/CTRL)+Shift+P**  Preferences: Open Workspace Settings 
+- Positron >Quarto >Inline Output: Enabled
 
 > **Notes:** Show them the same analysis in both formats. Both can be
 > stepped through one line at a time while exploring; the difference is
