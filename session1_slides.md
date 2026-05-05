@@ -7,7 +7,7 @@ analysis they "published" themselves.
 
 ---
 
-## Slide 1: Welcome
+## 1. Welcome
 
 - Two-session workshop on bringing AI into our R workflow
 - Today: install + first taste
@@ -19,7 +19,7 @@ analysis they "published" themselves.
 
 ---
 
-## Slide 2: What you'll leave with today
+## 2. What you'll leave with today
 
 1. Claude Desktop app
 2. Positron - the new R IDE from Posit
@@ -30,7 +30,7 @@ analysis they "published" themselves.
 
 ---
 
-## Slide 3: Pre-meeting accounts checklist
+## 3. Pre-meeting accounts checklist
 
 You should already have:
 
@@ -44,7 +44,7 @@ You should already have:
 
 ---
 
-## Slide 4: The installs (Windows 11)
+## 4. The installs (Windows 11)
 
 1. **Git for Windows**
    [gitforwindows.org](https://gitforwindows.org)
@@ -88,7 +88,7 @@ You should already have:
 
 ---
 
-## Slide 5: The installs (Mac)
+## 5. The installs (Mac)
 
 1. **iTerm2**
    [iterm2.com](https://iterm2.com)
@@ -118,7 +118,7 @@ You should already have:
 
 ---
 
-## Slide 6: Create the project folder
+## 6. Create the project folder
 
 Open the terminal in Positron and run:
 
@@ -138,9 +138,10 @@ Then **File > Open Folder > `iris-test`**.
 
 ---
 
-## Slide 7: Payoff #1 - Positron meets iris
+## 7. Payoff #1 - Positron meets iris
 
-Open `iris_anova.R`, paste the contents from the workshop repo,
+Open `iris_anova.R`, paste the contents from the
+[iris-test](https://github.com/faustovrz/iris-test/blob/main/iris_anova.R) repo,
 and step through it with **Cmd+Enter** / **Ctrl+Enter**.
 
 Watch the panes light up:
@@ -159,11 +160,12 @@ Watch the panes light up:
 
 ---
 
-## Slide 8: Script vs notebook
+## 8. Script vs notebook
 
 In the terminal: `touch iris_anova.qmd`
 
-Open `iris_anova.qmd`, paste the notebook version from the workshop
+Open `iris_anova.qmd`, paste the notebook version from the
+[iris-test](https://github.com/faustovrz/iris-test/blob/main/iris_anova.qmd)
 repo, and render it (**Cmd+Shift+K** / **Ctrl+Shift+K**).
 
 Compare:
@@ -177,7 +179,7 @@ Compare:
 
 ---
 
-## Slide 9: Payoff #2 - Publish to Connect Cloud
+## 9. Payoff #2 - Publish to Connect Cloud
 
 1. In the R console: `install.packages("rsconnect")`
 2. With `iris_anova.qmd` open, click the **Publish** button (top-right)
@@ -189,7 +191,7 @@ Compare:
 
 ---
 
-## Slide 10: Payoff #3 - Claude generates a notebook
+## 10. Payoff #3 - Claude generates a notebook
 
 Open **Claude Desktop > Code tab** and paste this prompt:
 
@@ -215,7 +217,7 @@ render it (**Cmd+Shift+K** / **Ctrl+Shift+K**).
 
 ---
 
-## Slide 11: Gallery - everyone's results
+## 11. Gallery - everyone's results
 
 Publish `iris_pca.qmd` to Connect Cloud and share your URL.
 
@@ -231,7 +233,7 @@ Ask Claude to build an HTML page showing everyone's notebooks:
 
 ---
 
-## Slide 12: Recap - what you can do now
+## 12. Recap - what you can do now
 
 - ✅ Run R interactively in a modern IDE
 - ✅ Use Claude to generate a complete R analysis
@@ -248,7 +250,7 @@ What you **can't yet** do (Session 2):
 
 ---
 
-## Slide 13: Before next session
+## 13. Before next session
 
 1. Read the **Prerequisites** section of `set_up_git_for_positron.qmd`
    (link in the workshop repo)
@@ -262,7 +264,7 @@ What you **can't yet** do (Session 2):
 
 ---
 
-## Slide 14: Questions
+## 14. Questions
 
 - Workshop materials: [github.com/faustovrz/ccgarden](https://github.com/faustovrz/ccgarden)
 - Slack channel: [your lab Slack]

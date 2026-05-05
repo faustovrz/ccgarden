@@ -8,7 +8,7 @@ Desktop's Code tab to edit and commit at least once.
 
 ---
 
-## Slide 1: Welcome back
+## 1. Welcome back
 
 Recap from Session 1:
 
@@ -26,7 +26,7 @@ Desktop to edit code.
 
 ---
 
-## Slide 2: Why version control?
+## 2. Why version control?
 
 - A safety net (undo any change, ever)
 - A collaboration substrate (share with reviewers, future you, lab)
@@ -38,7 +38,7 @@ Desktop to edit code.
 
 ---
 
-## Slide 3: Git setup - configure identity and PAT
+## 3. Git setup - configure identity and PAT
 
 From `set_up_git_for_positron.qmd`:
 
@@ -66,7 +66,7 @@ From `set_up_git_for_positron.qmd`:
 
 ---
 
-## Slide 4: Turn iris-test into a Git repo
+## 4. Turn iris-test into a Git repo
 
 You already have `~/Desktop/iris-test` from Session 1. Open it in Positron
 (if not already open), then in the integrated terminal:
@@ -90,7 +90,7 @@ iris_pca.qmd
 
 ---
 
-## Slide 5: First commit - the project as-is
+## 5. First commit - the project as-is
 
 ```bash
 git add .
@@ -105,7 +105,7 @@ One commit, three files - everything from Session 1 is now safely versioned.
 
 ---
 
-## Slide 6: Push to GitHub
+## 6. Push to GitHub
 
 With the GitHub CLI (one-liner):
 
@@ -128,7 +128,7 @@ Refresh your GitHub page - your files are there.
 
 ---
 
-## Slide 7: Republish from GitHub
+## 7. Republish from GitHub
 
 In Session 1 you published from the IDE. Now publish from the repo:
 
@@ -145,7 +145,7 @@ without manual republishing.
 
 ---
 
-## Slide 8: Edit with Claude Desktop
+## 8. Edit with Claude Desktop
 
 You already have Claude Desktop from Session 1. Prompt it:
 
@@ -166,7 +166,7 @@ Watch Claude:
 
 ---
 
-## Slide 9: Check the results in Positron
+## 9. Check the results in Positron
 
 After Claude commits and pushes:
 
@@ -180,7 +180,7 @@ After Claude commits and pushes:
 
 ---
 
-## Slide 10: The full loop
+## 10. The full loop
 
 ```
 Prompt Claude Desktop > approve > URL updates
@@ -202,7 +202,7 @@ You check the results in Positron whenever you want.
 
 ---
 
-## Slide 11: Recap - what you can do now
+## 11. Recap - what you can do now
 
 - ✅ Version-control your R projects with Git
 - ✅ Push to GitHub and publish from a repo
@@ -214,7 +214,7 @@ You check the results in Positron whenever you want.
 
 ---
 
-## Slide 12: Questions + where to go from here
+## 12. Questions + where to go from here
 
 - Workshop materials: [github.com/faustovrz/ccgarden](https://github.com/faustovrz/ccgarden)
 - Tutorials: `set_up_git_for_positron.qmd` and `build_first_repo_with_positron.qmd`
