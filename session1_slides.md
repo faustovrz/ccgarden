@@ -45,15 +45,26 @@ You should already have:
 
 ---
 
-## Slide 4: The four installs
+## Slide 4: The installs (Windows)
 
-1. **Claude Desktop** — anthropic.com/desktop
+1. **Git for Windows** — gitforwindows.org
+   (includes Git Bash — accept defaults during install)
 2. **R** — cran.r-project.org
-3. **Positron** — positron.posit.co
-4. **Claude extension** for Positron — from the Extensions marketplace
+3. **ggplot2** — open R GUI, pick a CRAN mirror, run
+   `install.packages("ggplot2")`
+4. **VC++ Redistributable** (x64) —
+   https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist
+5. **Positron** — positron.posit.co
+6. **Claude Desktop** — anthropic.com/desktop
+7. **Claude extension** for Positron — from the Extensions marketplace
 
-> **Notes:** Walk through each one in turn. Show the download page on the
-> projector. Mention the order: Claude Desktop → R → Positron → extension.
+> **Notes:** Order matters on Windows. Git for Windows gives us Git Bash,
+> which we'll set as the default terminal in Positron so all shell commands
+> match Mac/Linux. Installing ggplot2 from R GUI before Positron
+> bootstraps the personal library folder and sets a CRAN mirror — without
+> this step, `install.packages()` fails inside Positron. The VC++
+> Redistributable is required by Positron's R supervisor (kcserver.exe);
+> without it, R won't start at all in Positron.
 
 ---
 
@@ -73,26 +84,28 @@ Open Claude Desktop → sign in → ask "what's 2+2?"
 
 ---
 
-## Slide 6: Windows troubleshooting
+## Slide 6: Configure Positron's terminal
 
-**Positron won't start R** ("supervisor process exited unexpectedly"):
+Set the default terminal shell in Positron:
 
-- Install the **Microsoft Visual C++ Redistributable** (x64):
-  https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist
-- Restart Positron after installing
+**Windows:**
 
-**`install.packages()` fails in Positron** (can't write to personal library):
+1. Open Settings (**Ctrl+,**)
+2. Search for `terminal default profile windows`
+3. Select **Git Bash**
 
-- Open **R GUI** (not Positron) once
-- Run `install.packages("rlang")` — pick a CRAN mirror when prompted
-- This creates your personal library folder and sets the mirror
-- After that, package installs work normally in Positron
+**Mac:**
 
-> **Notes:** Both issues hit Windows users who have never run R before.
-> The VC++ Redistributable is not bundled with Positron. The personal
-> library problem happens because R needs an interactive session to
-> create `~/R/win-library/` and write a default mirror the first time.
-> Walk through these fixes on the projector if anyone is stuck.
+1. Open Settings (**Cmd+,**)
+2. Search for `terminal default profile osx`
+3. Select **zsh**
+
+> **Notes:** This is why we installed Git for Windows first on Windows.
+> Without it, Positron opens PowerShell and all the `ls`, `cd`, `mkdir`
+> instructions need Windows-specific alternatives. On Mac, zsh is the
+> default system shell and should already be selected — confirm it if
+> anyone's terminal looks different. Confirm everyone sees "bash" or
+> "zsh" in the terminal dropdown before moving on.
 
 ---
 
