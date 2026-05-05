@@ -249,7 +249,7 @@ folder that does the following with the built-in iris dataset in R:
 3. Run PCA on the four numeric columns
 4. Plot PC1 vs PC2, colored by species
 
-Use ggplot2 for the plot.
+Use ggplot2 for the plot. Leave editor field in the YAML unspecified,
 ```
 
 Wait for Claude to write the file, then open it in Positron and
