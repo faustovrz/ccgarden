@@ -45,7 +45,7 @@ You should already have:
 
 ---
 
-## Slide 4: The installs (Windows)
+## Slide 4: The installs (Windows 11)
 
 1. **Git for Windows** — gitforwindows.org
    (includes Git Bash — when asked about line endings, pick
@@ -116,89 +116,113 @@ Then **File → Open Folder → `iris-test`**.
 
 ## Slide 7: Payoff #1 — Positron meets iris
 
-Open `iris_anova.R` from the `iris-test` folder. Step through it
-section by section with **Cmd+Enter** / **Ctrl+Enter**.
+Open `iris_anova.R`, paste the contents from the workshop repo,
+and step through it with **Cmd+Enter** / **Ctrl+Enter**.
 
 Watch the panes light up:
 
 - **Variables** — `iris`, `fit`, `cld_df`
 - **Plots** — boxplot with letters
 - **Help** — F1 on `aov`
+- **Data Explorer** — `View(iris)` → **"View data table"**
 - **Outline** — sectioned headers
 
-> **Notes:** This is the "look how nice this IDE is" moment. Linger here
-> 15 minutes. Let them try clicking around. Show off the Data Explorer
-> on `iris` (`View(iris)` or click the row in Variables). Point out the
-> two modes: the **Summary view** opens first and shows column types and
-> distributions; click **"View data table"** to switch to the
-> spreadsheet view where you can sort, filter, and browse rows.
+> **Notes:** This is the "look how nice this IDE is" moment. Linger here.
+> Let them click around. Point out the Data Explorer two modes: **Summary
+> view** opens first with column types and distributions, click **"View
+> data table"** for the spreadsheet with sorting, filtering, and
+> histograms.
 
 ---
 
-## Slide 8: Payoff #2 — Publish a notebook in 60 seconds
+## Slide 8: Script vs notebook
 
-We'll publish the iris notebook from a pre-built repo to give you a
-public URL *right now*. Later sessions teach how to make it your own.
+In the terminal: `touch iris_anova.qmd`
 
-1. Open [connect.posit.cloud](https://connect.posit.cloud) in a browser
-2. Sign in (Google or GitHub)
-3. **New Content → Publish from Git Repository**
-4. Paste: `https://github.com/faustovrz/iris-demo`
-5. Pick `iris_analysis.qmd`
-6. **Publish** → get a URL
+Open `iris_anova.qmd`, paste the notebook version from the workshop
+repo, and render it (**Cmd+Shift+K** / **Ctrl+Shift+K**).
 
-> **Notes:** Live demo this in under a minute. The URL appears in their
-> own Connect Cloud account — they "own" it. The fact that the analysis
-> isn't theirs *yet* is the hook into Session 2.
+Compare:
 
----
+- `.R` — raw script, you run line by line
+- `.qmd` — prose + code + rendered output in one document
 
-## Slide 9: What just happened?
-
-- Posit Connect Cloud cloned the repo
-- It detected R 4.5.2 from the publisher config
-- Installed 55 R packages on its end
-- Re-rendered the Quarto notebook
-- Hosted the HTML at a public URL — yours
-
-> **Notes:** Demystify briefly. They don't need to understand the
-> manifest.json yet — that comes in Session 2. The point: it's not magic,
-> it's reproducible.
+> **Notes:** Show them the same analysis in both formats. The `.R` file
+> is for interactive exploration; the `.qmd` produces a publishable
+> document. This is why we use `.qmd` for the next step.
 
 ---
 
-## Slide 10: Payoff #3 — Claude Desktop on a real repo
+## Slide 9: Payoff #2 — Publish to Connect Cloud
 
-Demo: open Claude Desktop, attach the **sawers-targseq** repo, and ask:
+1. In the R console: `install.packages("rsconnect")`
+2. With `iris_anova.qmd` open, click the **Publish** button (top-right)
+3. Sign in to [connect.posit.cloud](https://connect.posit.cloud)
+4. **Publish** → get a URL
 
-- "What does this pipeline do at a high level?"
-- "Where is the variant calling step?"
-- "Explain the `02_align.sh` script line by line."
-
-> **Notes:** This is the "AI knows our code" moment. Pick questions that
-> would take a new lab member 30 min to answer themselves. Stress that
-> the repo never leaves their machine — Claude reads it locally.
+> **Notes:** Live demo this on the projector. Each person gets their own
+> URL under their own Connect Cloud account.
 
 ---
 
-## Slide 11: Recap — what you can do now
+## Slide 10: Payoff #3 — Claude generates a notebook
+
+Open **Claude Desktop → Code tab** and paste this prompt:
+
+> Create a Quarto notebook called `iris_pca.qmd` in my `iris-test`
+> folder that does the following with the built-in iris dataset in R:
+>
+> 1. Load the iris data
+> 2. Standardize the features (mean=0, variance=1)
+> 3. Run PCA on the four numeric columns
+> 4. Plot PC1 vs PC2, colored by species
+>
+> Use ggplot2 for the plot.
+
+Wait for Claude to write the file, then open it in Positron and
+render it (**Cmd+Shift+K** / **Ctrl+Shift+K**).
+
+> **Notes:** Everyone uses the same prompt. Results will vary slightly
+> because of AI randomness — that's a feature, not a bug. Walk the room
+> while Claude works. On Windows the Code tab path is the same. If
+> Claude asks to create the file, say yes.
+
+---
+
+## Slide 11: Gallery — everyone's results
+
+Publish `iris_pca.qmd` to Connect Cloud and share your URL.
+
+Ask Claude to build an HTML page showing everyone's notebooks:
+
+> Make an HTML page with a two-column layout. The left column has the
+> person's name, the right column has an iframe of their Connect Cloud
+> URL. Here are the names and URLs: [paste list]
+
+> **Notes:** Build this live on the projector. The collective gallery is
+> the "wow" closer — everyone sees their AI-generated analysis side by
+> side. Save the HTML for the workshop repo.
+
+---
+
+## Slide 12: Recap — what you can do now
 
 - ✅ Run R interactively in a modern IDE
-- ✅ Use Claude Desktop to interrogate code
-- ✅ Have a public web URL of a reproducible analysis
+- ✅ Use Claude to generate a complete R analysis
+- ✅ Publish to a public URL under your name
 
 What you **can't yet** do (Session 2):
 
 - ❌ Make your own version-controlled project
 - ❌ Edit the notebook and republish your version
-- ❌ Use Claude inside Positron to write code
+- ❌ Use Claude Code inside Positron's terminal
 
 > **Notes:** Honest gap framing. The "can't yet" list is the curriculum
 > for Session 2.
 
 ---
 
-## Slide 12: Before next session
+## Slide 13: Before next session
 
 1. Read the **Prerequisites** section of `set_up_git_for_positron.qmd`
    (link in the workshop repo)
@@ -212,7 +236,7 @@ What you **can't yet** do (Session 2):
 
 ---
 
-## Slide 13: Questions
+## Slide 14: Questions
 
 - Workshop materials: https://github.com/faustovrz/ccgarden
 - Slack channel: [your lab Slack]
