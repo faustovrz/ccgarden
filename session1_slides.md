@@ -139,6 +139,10 @@ ls
 
 Then **File > Open Folder > `iris-test`**.
 
+Open `iris_anova.R`, paste the contents from the
+[iris-test](https://github.com/faustovrz/iris-test/blob/main/iris_anova.R) repo,
+and step through it with **Cmd+Enter** / **Ctrl+Enter**.
+
 > **Notes:** This confirms Git Bash is working. The `iris-test` folder
 > becomes their working directory for Session 2 as well. On Mac the
 > commands are identical since zsh uses the same syntax.
@@ -156,10 +160,6 @@ Then **File > Open Folder > `iris-test`**.
 Move the **Terminal** tab from the Panel to the Session panes:
 grab the Terminal tab and drag it before the Session tab on the right.
 
-Open `iris_anova.R`, paste the contents from the
-[iris-test](https://github.com/faustovrz/iris-test/blob/main/iris_anova.R) repo,
-and step through it with **Cmd+Enter** / **Ctrl+Enter**.
-
 > **Notes:** Point at each area on the projector. The Panel vs Session
 > panes distinction matters: Console is where R runs, Terminal is where
 > shell/Git commands run. The Session panes on the right are
@@ -168,6 +168,10 @@ and step through it with **Cmd+Enter** / **Ctrl+Enter**.
 ---
 
 ## 8. Payoff #1 - Positron meets iris
+
+Focus on the **Editor** (center) and the **Session panes** (right).
+As you step through the script, the Session panes update in real time.
+The **Data Explorer** opens as a tab in the Editor section.
 
 Watch the panes light up:
 
@@ -195,12 +199,20 @@ repo, and render it (**Cmd+Shift+K** / **Ctrl+Shift+K**).
 
 Compare:
 
-- `.R` - raw script, you run line by line
-- `.qmd` - prose + code + rendered output in one document
+- `.R`: a program. Designed to be executed, either interactively or in
+  batch. Comments annotate the code. Output is primarily ephemeral in
+  interactive mode (console, plot pane) but written to files in batch
+  mode.
+- `.qmd`: a document, intended as a guide or a notebook for
+  reproducible science. The narrative comes first; code lives in chunks
+  that interrupt the prose; rendering executes the chunks and captures
+  their output (tables, figures) inline. The artifact itself is the
+  record of the analysis.
 
-> **Notes:** Show them the same analysis in both formats. The `.R` file
-> is for interactive exploration; the `.qmd` produces a publishable
-> document. This is why we use `.qmd` for the next step.
+> **Notes:** Show them the same analysis in both formats. Both can be
+> stepped through one line at a time while exploring; the difference is
+> the finished artifact, a program you run versus a document you
+> render. This is why we use `.qmd` for the next step.
 
 ---
 
