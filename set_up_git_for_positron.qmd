@@ -56,11 +56,23 @@ browseURL("https://git-scm.com/download/win")
 
 **For Mac users:**
 
-```{r}
-#| label: install-git-mac
-#| eval: false
-# Download and install from:
-browseURL("https://git-scm.com/download/mac")
+First, install Xcode Command Line Tools (this provides Git):
+
+```bash
+xcode-select --install
+```
+
+Then install Homebrew (a package manager you'll need for Node.js later):
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+Verify both:
+
+```bash
+git --version
+brew --version
 ```
 
 After installation, restart Positron to ensure it recognizes Git.
