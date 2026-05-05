@@ -1,10 +1,10 @@
-# Session 2: Claude Code in the Lab — Day 2
+# Session 2: Git and Claude Desktop in the Lab — Day 2
 
 **Audience:** same lab colleagues, after Session 1.
 **Duration:** ~90 min
 **Goal:** Everyone leaves with their `iris-test` project under Git version
 control, pushed to GitHub, published from the repo, and having used Claude
-Code in the terminal at least once.
+Desktop's Code tab to edit and commit at least once.
 
 ---
 
@@ -17,8 +17,8 @@ Recap from Session 1:
 - Published `iris_anova.qmd` and `iris_pca.qmd` to Connect Cloud from the IDE
 - `~/Desktop/iris-test` folder with `iris_anova.R`, `iris_anova.qmd`, `iris_pca.qmd`
 
-Today: **add Git to the workflow** — version control, GitHub, and Claude Code
-in the terminal.
+Today: **add Git to the workflow** — version control, GitHub, and Claude
+Desktop to edit code.
 
 > **Notes:** Frame as upgrading from manual publish to a durable pipeline.
 > Session 1 proved the tools work; Session 2 gives them a repeatable workflow
@@ -145,83 +145,58 @@ without manual republishing.
 
 ---
 
-## Slide 8: Install Claude Code
+## Slide 8: Edit with Claude Desktop
 
-Prerequisites: Node.js must be installed first.
+You already have Claude Desktop from Session 1. Prompt it:
 
-- **Mac:** `brew install node` or download from https://nodejs.org
-- **Windows:** download installer from https://nodejs.org
-
-Then install Claude Code:
-
-```bash
-npm install -g @anthropic-ai/claude-code
-```
-
-Verify it works:
-
-```bash
-claude --version
-```
-
-> **Notes:** If anyone already has Node.js, they can skip straight to
-> the npm install. Have them run `node --version` to check. Claude Code
-> requires Node 18+.
-
----
-
-## Slide 9: Claude Code — edit and commit
-
-In the Positron terminal, from inside `iris-test/`:
-
-```bash
-claude
-```
-
-Then prompt Claude Code:
-
-> "Add a Petal.Length ANOVA section to iris_anova.qmd"
+> "Add a Petal.Length ANOVA section to iris_anova.qmd in ~/Desktop/iris-test,
+> then commit and push"
 
 Watch Claude:
 
 - Read the existing `.qmd`
-- Propose changes
-- You accept → file is updated
+- Edit the file
+- `git add`, `git commit`, `git push` — all automatic
 
-Then back in the terminal:
+> **Notes:** No extra install needed. Everyone already has Claude Desktop.
+> The key insight: Claude handles the git commands too. They just prompt
+> and approve.
 
-```bash
-git diff
-git add iris_anova.qmd
-git commit -m "Add Petal.Length ANOVA section"
-git push
-```
+---
 
-Refresh your Connect Cloud URL — new section appears.
+## Slide 9: Check the results in Positron
+
+After Claude commits and pushes:
+
+1. Open `iris_anova.qmd` in Positron — see the new section
+2. Check `git log --oneline` in the terminal — see the commit
+3. Refresh your Connect Cloud URL — the published page updated
 
 > **Notes:** This is the headline moment of Session 2. Claude wrote
-> code, they reviewed it, they pushed it, and the published page updated
-> automatically. The full loop in one shot.
+> code, committed it, pushed it — and the published page updated
+> automatically. They just had to say yes.
 
 ---
 
 ## Slide 10: The full loop
 
 ```
-Edit with Claude Code → review diff → commit → push → URL updates
+Prompt Claude Desktop → approve → URL updates
 ```
 
-This is the workflow for any future analysis:
+That's it. Under the hood:
 
-1. Open your project in Positron
-2. Run `claude` in the terminal
-3. Ask for what you need
-4. Review, commit, push
-5. Your published notebook updates automatically
+1. Claude reads your files
+2. Claude edits the code
+3. Claude commits and pushes
+4. Connect Cloud re-renders
 
-> **Notes:** Reinforce that every step is reversible. `git diff` before
-> committing, `git revert` if something goes wrong. The safety net is
-> always there.
+You check the results in Positron whenever you want.
+
+> **Notes:** Reinforce that they can always review before approving.
+> Claude shows what it's about to do. `git revert` if something goes
+> wrong. For advanced usage, Claude Code can be installed in the
+> terminal for a tighter integration.
 
 ---
 
@@ -229,8 +204,8 @@ This is the workflow for any future analysis:
 
 - ✅ Version-control your R projects with Git
 - ✅ Push to GitHub and publish from a repo
-- ✅ Use Claude Code in the terminal to edit code
-- ✅ The edit → commit → push → publish loop
+- ✅ Use Claude Desktop to edit, commit, and push
+- ✅ The prompt → check → commit → push → publish loop
 
 > **Notes:** End on momentum. Don't try to teach more features — point
 > at where to learn next.
