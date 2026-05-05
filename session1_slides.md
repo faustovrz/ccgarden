@@ -78,23 +78,7 @@ You should already have:
 
 ---
 
-## Slide 5: Smoke tests after each install
-
-Open a terminal and run:
-
-```bash
-R --version
-positron --version    # if PATH set up
-```
-
-Open Claude Desktop → sign in → ask "what's 2+2?"
-
-> **Notes:** Catching broken installs *now* is the whole point. Don't move
-> on until everyone's smoke test passes.
-
----
-
-## Slide 6: Create the project folder
+## Slide 5: Create the project folder
 
 Open the terminal in Positron and run:
 
@@ -114,7 +98,7 @@ Then **File → Open Folder → `iris-test`**.
 
 ---
 
-## Slide 7: Payoff #1 — Positron meets iris
+## Slide 6: Payoff #1 — Positron meets iris
 
 Open `iris_anova.R`, paste the contents from the workshop repo,
 and step through it with **Cmd+Enter** / **Ctrl+Enter**.
@@ -135,7 +119,7 @@ Watch the panes light up:
 
 ---
 
-## Slide 8: Script vs notebook
+## Slide 7: Script vs notebook
 
 In the terminal: `touch iris_anova.qmd`
 
@@ -153,7 +137,7 @@ Compare:
 
 ---
 
-## Slide 9: Payoff #2 — Publish to Connect Cloud
+## Slide 8: Payoff #2 — Publish to Connect Cloud
 
 1. In the R console: `install.packages("rsconnect")`
 2. With `iris_anova.qmd` open, click the **Publish** button (top-right)
@@ -165,7 +149,7 @@ Compare:
 
 ---
 
-## Slide 10: Payoff #3 — Claude generates a notebook
+## Slide 9: Payoff #3 — Claude generates a notebook
 
 Open **Claude Desktop → Code tab** and paste this prompt:
 
@@ -189,7 +173,7 @@ render it (**Cmd+Shift+K** / **Ctrl+Shift+K**).
 
 ---
 
-## Slide 11: Gallery — everyone's results
+## Slide 10: Gallery — everyone's results
 
 Publish `iris_pca.qmd` to Connect Cloud and share your URL.
 
@@ -205,7 +189,7 @@ Ask Claude to build an HTML page showing everyone's notebooks:
 
 ---
 
-## Slide 12: Recap — what you can do now
+## Slide 11: Recap — what you can do now
 
 - ✅ Run R interactively in a modern IDE
 - ✅ Use Claude to generate a complete R analysis
@@ -222,7 +206,7 @@ What you **can't yet** do (Session 2):
 
 ---
 
-## Slide 13: Before next session
+## Slide 12: Before next session
 
 1. Read the **Prerequisites** section of `set_up_git_for_positron.qmd`
    (link in the workshop repo)
@@ -236,7 +220,7 @@ What you **can't yet** do (Session 2):
 
 ---
 
-## Slide 14: Questions
+## Slide 13: Questions
 
 - Workshop materials: https://github.com/faustovrz/ccgarden
 - Slack channel: [your lab Slack]
