@@ -146,6 +146,13 @@ Then **File > Open Folder > `iris-test`**.
 4. **Panel** (below the Editor) - tabs for **Console** (R) and **Terminal** (shell)
 5. **Session panes** (right side) - **Variables**, **Plots**, **Help**, **Data Explorer**
 
+Move the **Terminal** tab from the Panel to the Session panes:
+grab the Terminal tab and drag it before the Session tab on the right.
+
+Open `iris_anova.R`, paste the contents from the
+[iris-test](https://github.com/faustovrz/iris-test/blob/main/iris_anova.R) repo,
+and step through it with **Cmd+Enter** / **Ctrl+Enter**.
+
 > **Notes:** Point at each area on the projector. The Panel vs Session
 > panes distinction matters: Console is where R runs, Terminal is where
 > shell/Git commands run. The Session panes on the right are
@@ -154,10 +161,6 @@ Then **File > Open Folder > `iris-test`**.
 ---
 
 ## 8. Payoff #1 - Positron meets iris
-
-Open `iris_anova.R`, paste the contents from the
-[iris-test](https://github.com/faustovrz/iris-test/blob/main/iris_anova.R) repo,
-and step through it with **Cmd+Enter** / **Ctrl+Enter**.
 
 Watch the panes light up:
 
