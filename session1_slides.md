@@ -138,7 +138,22 @@ Then **File > Open Folder > `iris-test`**.
 
 ---
 
-## 7. Payoff #1 - Positron meets iris
+## 7. The Positron layout
+
+1. **Activity Bar** - narrow icon strip on the far left
+2. **Side Bar** - file **Explorer**, Search, Source Control, Extensions
+3. **Editor** - the central area where you edit files
+4. **Panel** (below the Editor) - tabs for **Console** (R) and **Terminal** (shell)
+5. **Session panes** (right side) - **Variables**, **Plots**, **Help**, **Data Explorer**
+
+> **Notes:** Point at each area on the projector. The Panel vs Session
+> panes distinction matters: Console is where R runs, Terminal is where
+> shell/Git commands run. The Session panes on the right are
+> Positron-specific and don't exist in regular VS Code.
+
+---
+
+## 8. Payoff #1 - Positron meets iris
 
 Open `iris_anova.R`, paste the contents from the
 [iris-test](https://github.com/faustovrz/iris-test/blob/main/iris_anova.R) repo,
@@ -160,7 +175,7 @@ Watch the panes light up:
 
 ---
 
-## 8. Script vs notebook
+## 9. Script vs notebook
 
 In the terminal: `touch iris_anova.qmd`
 
@@ -179,7 +194,7 @@ Compare:
 
 ---
 
-## 9. Payoff #2 - Publish to Connect Cloud
+## 10. Payoff #2 - Publish to Connect Cloud
 
 1. In the R console: `install.packages("rsconnect")`
 2. With `iris_anova.qmd` open, click the **Publish** button (top-right)
@@ -191,7 +206,7 @@ Compare:
 
 ---
 
-## 10. Payoff #3 - Claude generates a notebook
+## 11. Payoff #3 - Claude generates a notebook
 
 Open **Claude Desktop > Code tab** and paste this prompt:
 
@@ -217,7 +232,7 @@ render it (**Cmd+Shift+K** / **Ctrl+Shift+K**).
 
 ---
 
-## 11. Gallery - everyone's results
+## 12. Gallery - everyone's results
 
 Publish `iris_pca.qmd` to Connect Cloud and share your URL.
 
@@ -236,7 +251,7 @@ frame as an iframe. Here are the names and URLs: [paste list]
 
 ---
 
-## 12. Recap - what you can do now
+## 13. Recap - what you can do now
 
 - ✅ Run R interactively in a modern IDE
 - ✅ Use Claude to generate a complete R analysis
@@ -253,7 +268,7 @@ What you **can't yet** do (Session 2):
 
 ---
 
-## 13. Before next session
+## 14. Before next session
 
 1. Read the **Prerequisites** section of `set_up_git_for_positron.qmd`
    (link in the workshop repo)
@@ -267,7 +282,7 @@ What you **can't yet** do (Session 2):
 
 ---
 
-## 14. Questions
+## 15. Questions
 
 - Workshop materials: [github.com/faustovrz/ccgarden](https://github.com/faustovrz/ccgarden)
 - Slack channel: [your lab Slack]
