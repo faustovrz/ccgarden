@@ -1,0 +1,200 @@
+# Stage 4: GenBank export
+
+Paste the section below into `R/annotation_map.qmd` after the annotation map.
+The output `.gbk` file goes to `../results/`, which is gitignored, so the
+nucleotide content is never published. Only the rendered HTML in `docs/`
+goes to GitHub Pages.
+
+The `primer_bind` features are derived from the e-PCR amplicon coordinates:
+the forward primer occupies the first N bases of the amplicon (where N is
+the forward primer length), the reverse primer occupies the last M bases.
+
+````markdown
+## GenBank export
+
+```{r genbank-helpers}
+gbk_location <- function(start, end, strand = "+") {
+  s <- min(start, end)
+  e <- max(start, end)
+  if (strand == "-") sprintf("complement(%d..%d)", s, e)
+  else               sprintf("%d..%d", s, e)
+}
+
+write_genbank <- function(filepath, gene_name, locus_id, sequence, features,
+                          comment_lines = character(0)) {
+  seq_len_val <- nchar(sequence)
+  date_str    <- toupper(format(Sys.Date(), "%d-%b-%Y"))
+  lines <- character(0)
+
+  lines <- c(lines, sprintf("LOCUS       %-16s %7d bp    DNA     linear   PLN %s",
+                            locus_id, seq_len_val, date_str))
+  lines <- c(lines, sprintf("DEFINITION  Zea mays cultivar LH244 %s (%s) genomic sequence.",
+                            locus_id, gene_name))
+  lines <- c(lines, sprintf("ACCESSION   %s", locus_id))
+  lines <- c(lines, sprintf("VERSION     %s", locus_id))
+  lines <- c(lines, "KEYWORDS    .")
+  lines <- c(lines, "SOURCE      Zea mays (maize)")
+  lines <- c(lines, "  ORGANISM  Zea mays")
+  lines <- c(lines, "            Eukaryota; Viridiplantae; Streptophyta; Embryophyta;")
+  lines <- c(lines, "            Tracheophyta; Spermatophyta; Magnoliopsida; Liliopsida;")
+  lines <- c(lines, "            Poales; Poaceae; PACMAD clade; Panicoideae;")
+  lines <- c(lines, "            Andropogonodae; Andropogoneae; Tripsacinae; Zea.")
+
+  if (length(comment_lines) > 0) {
+    lines <- c(lines, sprintf("COMMENT     %s", comment_lines[1]))
+    for (cl in comment_lines[-1]) {
+      lines <- c(lines, sprintf("            %s", cl))
+    }
+  }
+
+  lines <- c(lines, "FEATURES             Location/Qualifiers")
+  for (feat in features) {
+    lines <- c(lines, sprintf("     %-16s%s", feat$type, feat$location))
+    for (qual in feat$qualifiers) {
+      lines <- c(lines, sprintf("                     /%s=\"%s\"", qual$key, qual$value))
+    }
+  }
+
+  seq_lower <- tolower(sequence)
+  lines <- c(lines, "ORIGIN")
+  for (start_pos in seq(1, seq_len_val, by = 60)) {
+    end_pos <- min(start_pos + 59, seq_len_val)
+    chunk   <- substr(seq_lower, start_pos, end_pos)
+    groups  <- regmatches(chunk, gregexpr(".{1,10}", chunk))[[1]]
+    lines <- c(lines, sprintf("%9d %s", start_pos, paste(groups, collapse = " ")))
+  }
+  lines <- c(lines, "//")
+  writeLines(lines, filepath)
+}
+```
+
+```{r genbank-write}
+results_dir <- file.path("..", "results", gene_id)
+dir.create(results_dir, recursive = TRUE, showWarnings = FALSE)
+
+features <- list()
+
+# source
+comment_lines <- c(
+  sprintf("Chromosome: %s", meta$chromosome),
+  sprintf("Strand: %s", meta$strand),
+  sprintf("Padded region: %s:%d..%d (+/-%d bp flanking)",
+          meta$chromosome, meta$padded_start, meta$padded_end, meta$flank_bp)
+)
+features[[length(features) + 1]] <- list(
+  type = "source",
+  location = sprintf("1..%d", q$length),
+  qualifiers = list(
+    list(key = "organism", value = "Zea mays"),
+    list(key = "mol_type", value = "genomic DNA"),
+    list(key = "cultivar", value = "LH244"),
+    list(key = "db_xref",  value = "taxon:4577"),
+    list(key = "chromosome", value = meta$chromosome),
+    list(key = "note",     value = sprintf("LH244 CAU padded region: %s:%d..%d(%s)",
+                                           meta$chromosome, meta$padded_start,
+                                           meta$padded_end, meta$strand))
+  )
+)
+
+# gene
+if (!is.null(meta$gene_offset) && meta$gene_offset > 0) {
+  features[[length(features) + 1]] <- list(
+    type = "gene",
+    location = sprintf("%d..%d", meta$gene_offset + 1,
+                       meta$gene_offset + meta$gene_length),
+    qualifiers = list(
+      list(key = "gene",      value = q$gene_name),
+      list(key = "locus_tag", value = q$name)
+    )
+  )
+}
+
+# exons
+if (nrow(exon_hits) > 0) {
+  ordered_exons <- exon_hits[order(pmin(exon_hits$Q.start, exon_hits$Q.end)), ]
+  for (j in seq_len(nrow(ordered_exons))) {
+    ex <- ordered_exons[j, ]
+    features[[length(features) + 1]] <- list(
+      type = "exon",
+      location = sprintf("%d..%d", min(ex$Q.start, ex$Q.end),
+                         max(ex$Q.start, ex$Q.end)),
+      qualifiers = list(
+        list(key = "number", value = as.character(j)),
+        list(key = "note",   value = sprintf("identity=%.1f%%", ex$Identity))
+      )
+    )
+  }
+}
+
+# CRISPR guides
+if (exists("guide_hits") && nrow(guide_hits) > 0) {
+  for (j in seq_len(nrow(guide_hits))) {
+    g <- guide_hits[j, ]
+    features[[length(features) + 1]] <- list(
+      type = "misc_binding",
+      location = gbk_location(g$Q.start, g$Q.end, g$strand),
+      qualifiers = list(
+        list(key = "label", value = g$Subject),
+        list(key = "note",  value = "CRISPR guide target site")
+      )
+    )
+  }
+}
+
+# Amplicons (from e-PCR), with primer_bind features derived from amplicon edges
+if (exists("amp_hits") && nrow(amp_hits) > 0) {
+  for (j in seq_len(nrow(amp_hits))) {
+    a <- amp_hits[j, ]
+    amp_strand <- if (is.na(a$strand) || a$strand == "+") "+" else "-"
+    amp_start  <- min(a$start, a$end)
+    amp_end    <- max(a$start, a$end)
+
+    fwd_seq <- oligo_seq_lookup[[a$forward_id]]
+    rev_seq <- oligo_seq_lookup[[a$reverse_id]]
+    fwd_len <- if (!is.null(fwd_seq)) nchar(fwd_seq) else 20L
+    rev_len <- if (!is.null(rev_seq)) nchar(rev_seq) else 20L
+
+    features[[length(features) + 1]] <- list(
+      type = "misc_feature",
+      location = sprintf("%d..%d", amp_start, amp_end),
+      qualifiers = list(
+        list(key = "label", value = sprintf("amplicon_pair_%s", a$pair)),
+        list(key = "note",  value = sprintf("e-PCR predicted product, %d bp", a$size))
+      )
+    )
+
+    # forward primer at the 5' end of the amplicon (relative to amplicon strand)
+    if (amp_strand == "+") {
+      fwd_loc <- gbk_location(amp_start, amp_start + fwd_len - 1L, "+")
+      rev_loc <- gbk_location(amp_end - rev_len + 1L, amp_end, "-")
+    } else {
+      fwd_loc <- gbk_location(amp_end - fwd_len + 1L, amp_end, "-")
+      rev_loc <- gbk_location(amp_start, amp_start + rev_len - 1L, "+")
+    }
+
+    features[[length(features) + 1]] <- list(
+      type = "primer_bind",
+      location = fwd_loc,
+      qualifiers = list(
+        list(key = "label", value = a$forward_id),
+        list(key = "note",  value = "forward primer")
+      )
+    )
+    features[[length(features) + 1]] <- list(
+      type = "primer_bind",
+      location = rev_loc,
+      qualifiers = list(
+        list(key = "label", value = a$reverse_id),
+        list(key = "note",  value = "reverse primer")
+      )
+    )
+  }
+}
+
+safe_name <- gsub("[^A-Za-z0-9_.-]", "_", q$gene_name)
+gbk_path  <- file.path(results_dir, sprintf("%s_%s.gbk", q$name, safe_name))
+write_genbank(gbk_path, q$gene_name, q$name, q$sequence, features, comment_lines)
+
+cat(sprintf("Wrote %s (%d features)\n", gbk_path, length(features)))
+```
+````

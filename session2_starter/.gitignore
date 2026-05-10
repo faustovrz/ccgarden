@@ -1,0 +1,25 @@
+# Local conda env
+env/
+
+# Lab data: not redistributed
+data/
+
+# Pipeline outputs that contain sequence: not published
+results/
+
+# Quarto / knitr build artifacts (rendered HTML in docs/ IS published)
+*_files/
+*_cache/
+.quarto/
+_freeze/
+
+# R session
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+.Rproj.user/
+
+# OS
+.DS_Store
+Thumbs.db

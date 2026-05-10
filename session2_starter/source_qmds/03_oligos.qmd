@@ -1,0 +1,221 @@
+# Stage 3: Oligo annotation (guides + primer pairs)
+
+Paste the chunks below into `R/annotation_map.qmd` after the `## Exons`
+section. Guides are placed with `blastn -task blastn-short`; primer pairs
+are placed with e-PCR (`re-PCR -s`) so the amplicon span comes from a
+valid pair, not from individual primer hits.
+
+The third chunk replaces the `plot-exons` chunk to add guides and amplicons
+to the annotation map.
+
+## Guides via blastn-short
+
+Add this section header and chunk:
+
+````markdown
+## Oligos
+
+```{r blast-guides}
+guide_cmd <- sprintf(
+  paste(
+    'blastn -task blastn-short -query %s -subject %s',
+    '-word_size 7 -evalue 1000 -dust no -soft_masking false',
+    '-ungapped -perc_identity 85 -max_target_seqs 50',
+    '-outfmt "6 qseqid sseqid pident length mismatch gapopen',
+    'qstart qend sstart send evalue bitscore qlen slen"'
+  ),
+  shQuote(genomic_path), shQuote(oligo_path)
+)
+
+guide_out <- system(guide_cmd, intern = TRUE)
+guide_hits <- if (length(guide_out) > 0) {
+  read.table(text = guide_out, sep = "\t", stringsAsFactors = FALSE,
+             col.names = col_names)
+} else {
+  data.frame()
+}
+
+if (nrow(guide_hits) > 0) {
+  guide_hits <- merge(guide_hits, oligo_meta,
+                      by.x = "Subject", by.y = "oligo_id", all.x = TRUE)
+  guide_hits$strand <- ifelse(guide_hits$S.start <= guide_hits$S.end, "+", "-")
+  # Keep guides only, near-full-length, high-identity
+  guide_hits <- guide_hits[
+    guide_hits$oligo_type == "CRISPR_guide" &
+    guide_hits$Aln.Length >= (guide_hits$S.len - 2) &
+    guide_hits$Identity >= 95, ]
+}
+
+cat(sprintf("Guides placed: %d\n", nrow(guide_hits)))
+```
+````
+
+## Primer pairs via e-PCR
+
+Add this chunk after the guide chunk:
+
+````markdown
+```{r epcr-primers}
+# Build STS file for re-PCR: one line per primer pair.
+oligo_seq_lookup <- setNames(
+  vapply(oligo_records, function(x) x$sequence, character(1)),
+  vapply(oligo_records, function(x) x$name,     character(1))
+)
+
+primer_meta <- oligo_meta[oligo_meta$oligo_type %in%
+                          c("forward_primer", "reverse_primer"), ]
+
+pair_ids <- unique(na.omit(primer_meta$pair))
+sts_lines <- character(0)
+pair_rows <- data.frame(
+  pair = character(0), forward_id = character(0), reverse_id = character(0),
+  stringsAsFactors = FALSE
+)
+for (pid in pair_ids) {
+  fwd <- primer_meta[primer_meta$pair == pid &
+                     primer_meta$oligo_type == "forward_primer", ]
+  rev <- primer_meta[primer_meta$pair == pid &
+                     primer_meta$oligo_type == "reverse_primer", ]
+  if (nrow(fwd) != 1 || nrow(rev) != 1) next
+  sts_lines <- c(sts_lines, sprintf("pair_%s\t%s\t%s\t100-2000",
+                                     pid,
+                                     oligo_seq_lookup[[fwd$oligo_id]],
+                                     oligo_seq_lookup[[rev$oligo_id]]))
+  pair_rows <- rbind(pair_rows, data.frame(
+    pair = pid, forward_id = fwd$oligo_id, reverse_id = rev$oligo_id,
+    stringsAsFactors = FALSE
+  ))
+}
+
+amp_hits <- data.frame(
+  seq_id = character(0), pair = character(0), strand = character(0),
+  start = integer(0), end = integer(0), size = integer(0),
+  forward_id = character(0), reverse_id = character(0),
+  stringsAsFactors = FALSE
+)
+
+if (length(sts_lines) > 0) {
+  sts_file <- tempfile(fileext = ".sts")
+  writeLines(sts_lines, sts_file)
+
+  epcr_out <- system(sprintf("re-PCR -s %s %s 2>/dev/null",
+                             shQuote(sts_file), shQuote(genomic_path)),
+                     intern = TRUE)
+  unlink(sts_file)
+
+  # Skip header / comment lines that re-PCR may emit, parse the rest.
+  data_lines <- epcr_out[!grepl("^#", epcr_out) & nzchar(epcr_out)]
+  if (length(data_lines) > 0) {
+    raw <- read.table(text = data_lines, sep = "\t", fill = TRUE,
+                      stringsAsFactors = FALSE)
+    amp_hits <- data.frame(
+      seq_id = raw$V1,
+      pair   = sub("^pair_", "", raw$V2),
+      strand = raw$V3,
+      start  = as.integer(raw$V4),
+      end    = as.integer(raw$V5),
+      size   = as.integer(raw$V5) - as.integer(raw$V4) + 1L,
+      stringsAsFactors = FALSE
+    )
+    amp_hits <- merge(amp_hits, pair_rows, by = "pair", all.x = TRUE)
+  }
+}
+
+cat(sprintf("Predicted amplicons: %d (from %d pairs in STS)\n",
+            nrow(amp_hits), nrow(pair_rows)))
+```
+````
+
+## Annotation map with guides and amplicons
+
+Replace the `plot-exons` chunk with this expanded version:
+
+````markdown
+```{r plot-annotation, fig.width=10, fig.height=3.5}
+gene_seq <- data.frame(seq_id = q$name, length = q$length)
+
+exon_feats <- if (nrow(exon_hits) > 0) {
+  data.frame(
+    seq_id    = exon_hits$Query,
+    start     = pmin(exon_hits$Q.start, exon_hits$Q.end),
+    end       = pmax(exon_hits$Q.start, exon_hits$Q.end),
+    feat_type = "Exon",
+    stringsAsFactors = FALSE
+  )
+} else {
+  data.frame(seq_id = character(0), start = integer(0), end = integer(0),
+             feat_type = character(0), stringsAsFactors = FALSE)
+}
+
+guide_feats <- if (nrow(guide_hits) > 0) {
+  data.frame(
+    seq_id    = guide_hits$Query,
+    start     = pmin(guide_hits$Q.start, guide_hits$Q.end),
+    end       = pmax(guide_hits$Q.start, guide_hits$Q.end),
+    feat_type = "CRISPR_guide",
+    name      = guide_hits$Subject,
+    stringsAsFactors = FALSE
+  )
+} else {
+  data.frame(seq_id = character(0), start = integer(0), end = integer(0),
+             feat_type = character(0), name = character(0),
+             stringsAsFactors = FALSE)
+}
+
+# Render amplicons as gggenomes "genes" so the strand arrow is visible.
+amp_genes <- if (nrow(amp_hits) > 0) {
+  is_rev <- amp_hits$strand == "-"
+  data.frame(
+    seq_id    = amp_hits$seq_id,
+    start     = ifelse(is_rev, amp_hits$end,   amp_hits$start),
+    end       = ifelse(is_rev, amp_hits$start, amp_hits$end),
+    feat_type = "Amplicon",
+    name      = sprintf("pair_%s", amp_hits$pair),
+    stringsAsFactors = FALSE
+  )
+} else {
+  data.frame(seq_id = character(0), start = integer(0), end = integer(0),
+             feat_type = character(0), name = character(0),
+             stringsAsFactors = FALSE)
+}
+
+p <- gggenomes(
+  seqs  = gene_seq,
+  genes = amp_genes,
+  feats = list(exons = exon_feats, guides = guide_feats)
+) +
+  geom_seq() +
+  geom_feat(data = feats(exons), aes(y = y - 0.15, yend = y - 0.15,
+            color = feat_type),
+            position = "identity", linewidth = 5, alpha = 0.8) +
+  geom_feat(data = feats(guides), aes(color = feat_type), linewidth = 2) +
+  geom_feat_label(data = feats(guides), aes(label = name),
+                  size = 2.5, nudge_y = 0.05, color = "#D94040") +
+  geom_gene(aes(fill = feat_type), color = NA, size = 10) +
+  geom_gene_label(aes(label = name), size = 2.5, nudge_y = 0.05) +
+  scale_color_manual(
+    name   = NULL,
+    values = c("Exon" = "#DAA520", "CRISPR_guide" = "#D94040"),
+    labels = c("Exon" = "Exon", "CRISPR_guide" = "CRISPR guide")
+  ) +
+  scale_fill_manual(
+    name   = NULL,
+    values = c("Amplicon" = "#40A0D0"),
+    labels = c("Amplicon" = "PCR amplicon (e-PCR)")
+  ) +
+  labs(title = sprintf("%s (%s)", q$gene_name, q$name)) +
+  theme(legend.position = "bottom")
+
+if (!is.null(meta$gene_offset) && meta$gene_offset > 0) {
+  gene_start <- meta$gene_offset + 1
+  gene_end   <- meta$gene_offset + meta$gene_length
+  p <- p +
+    geom_vline(xintercept = gene_start, linetype = "dashed",
+               color = "grey40", linewidth = 0.4) +
+    geom_vline(xintercept = gene_end, linetype = "dashed",
+               color = "grey40", linewidth = 0.4)
+}
+
+print(p)
+```
+````

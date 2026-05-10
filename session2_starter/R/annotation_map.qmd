@@ -1,0 +1,110 @@
+---
+title: "CRISPR target gene annotation map"
+author: ""
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    embed-resources: true
+output-dir: ../docs
+params:
+  gene: "nmx"
+---
+
+```{r r-packages, include=FALSE}
+required_pkgs <- c("yaml", "gggenomes")
+missing_pkgs  <- setdiff(required_pkgs, rownames(installed.packages()))
+if (length(missing_pkgs) > 0) {
+  install.packages(missing_pkgs, repos = "https://cloud.r-project.org")
+}
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(gggenomes)
+library(yaml)
+```
+
+## Inputs
+
+```{r paths}
+gene_id      <- params$gene
+data_dir     <- file.path("..", "data", gene_id)
+genomic_path <- file.path(data_dir, "genomic.fa")
+cdna_path    <- file.path(data_dir, "cdna.fa")
+oligo_path   <- file.path(data_dir, "oligos.fa")
+meta_path    <- file.path(data_dir, "meta.yml")
+
+stopifnot(
+  "genomic.fa not found" = file.exists(genomic_path),
+  "cdna.fa not found"    = file.exists(cdna_path),
+  "oligos.fa not found"  = file.exists(oligo_path),
+  "meta.yml not found"   = file.exists(meta_path)
+)
+
+meta <- read_yaml(meta_path)
+```
+
+```{r helpers}
+parse_fasta <- function(fasta_file) {
+  lines <- readLines(fasta_file, warn = FALSE)
+  idx   <- grep("^>", lines)
+  lapply(seq_along(idx), function(i) {
+    start <- idx[i]
+    end   <- if (i < length(idx)) idx[i + 1] - 1 else length(lines)
+    hdr   <- sub("^>", "", lines[start])
+    seq_text <- paste(lines[(start + 1):end], collapse = "")
+    parts <- strsplit(hdr, "\\s+")[[1]]
+    list(
+      header   = hdr,
+      name     = parts[1],
+      sequence = seq_text,
+      length   = nchar(seq_text)
+    )
+  })
+}
+
+# Returns one row per oligo with columns: oligo_id, oligo_type, pair.
+# `pair` is NA for guides; non-NA for forward_primer / reverse_primer rows
+# that share a value to identify which forward goes with which reverse.
+parse_oligo_meta <- function(fasta_file) {
+  hdrs <- grep("^>", readLines(fasta_file, warn = FALSE), value = TRUE)
+  do.call(rbind, lapply(hdrs, function(h) {
+    h <- sub("^>", "", h)
+    parts  <- strsplit(h, "\\s+")[[1]]
+    type_f <- sub("^type=", "", grep("^type=", parts, value = TRUE))
+    pair_f <- sub("^pair=", "", grep("^pair=", parts, value = TRUE))
+    data.frame(
+      oligo_id   = parts[1],
+      oligo_type = ifelse(length(type_f) > 0, type_f, NA_character_),
+      pair       = ifelse(length(pair_f) > 0, pair_f, NA_character_),
+      stringsAsFactors = FALSE
+    )
+  }))
+}
+```
+
+## Gene
+
+```{r load-gene}
+queries <- parse_fasta(genomic_path)
+stopifnot("Expected exactly one record in genomic.fa" = length(queries) == 1)
+q <- queries[[1]]
+q$gene_name <- meta$gene_name
+
+cdna_records <- parse_fasta(cdna_path)
+oligo_records <- parse_fasta(oligo_path)
+oligo_meta   <- parse_oligo_meta(oligo_path)
+
+cat(sprintf("Gene:          %s\n", q$gene_name))
+cat(sprintf("Locus ID:      %s\n", q$name))
+cat(sprintf("Padded length: %d bp\n", q$length))
+cat(sprintf("cDNA records:  %d\n", length(cdna_records)))
+cat(sprintf("Oligos:        %d (guides: %d, fwd primers: %d, rev primers: %d)\n",
+            nrow(oligo_meta),
+            sum(oligo_meta$oligo_type == "CRISPR_guide"),
+            sum(oligo_meta$oligo_type == "forward_primer"),
+            sum(oligo_meta$oligo_type == "reverse_primer")))
+cat(sprintf("Primer pairs:  %d\n",
+            length(unique(na.omit(oligo_meta$pair)))))
+```

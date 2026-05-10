@@ -1,0 +1,7 @@
+name: crisprpen
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - blast>=2.14
+  - e-pcr
