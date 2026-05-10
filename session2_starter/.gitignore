@@ -1,8 +1,11 @@
 # Local conda env
 env/
 
-# Lab data: not redistributed
-data/
+# Per-gene lab data: input FASTAs stay local; the README.md and meta.yml
+# templates ship with the starter so the folder layout is documented.
+data/*/*
+!data/*/README.md
+!data/*/meta.yml
 
 # Pipeline outputs that contain sequence: not published
 results/

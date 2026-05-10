@@ -1,0 +1,16 @@
+# Per-gene metadata for the annotation pipeline.
+# Coordinates refer to the original LH244 genome assembly. The padded sequence
+# in genomic.fa already corresponds to padded_start..padded_end on the listed
+# strand (reverse-complemented if strand is "-"), so coordinates inside the
+# qmd are 1-based offsets within genomic.fa.
+
+gene_name: nmx
+locus_id: Zm00116aXXXXXX           # LH244 CAU locus tag, replace with real ID
+transcript_id: Zm00116aXXXXXX_T01  # primary transcript, replace with real ID
+chromosome: chrX                   # source chromosome in the LH244 assembly
+strand: "+"                        # "+" or "-"
+padded_start: 0                    # 1-based coord on chromosome, replace
+padded_end: 0                      # 1-based coord on chromosome, replace
+gene_offset: 0                     # bp from start of genomic.fa to gene start
+gene_length: 0                     # gene span in bp (end - start + 1)
+flank_bp: 500                      # bp of flank on each side used during padding
