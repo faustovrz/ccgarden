@@ -1,44 +1,83 @@
-# Session 2: Git and Claude Desktop in the Lab - Day 2
+# Session 2: Git and Claude Code in a real lab project
 
-**Audience:** same lab colleagues, after Session 1.
-**Duration:** ~90 min
-**Goal:** Everyone leaves with their `iris-test` project under Git version
-control, pushed to GitHub, published from the repo, and having used Claude
-Desktop's Code tab to edit and commit at least once.
+**Audience:** same colleagues from Session 1, with the prerequisite email done.
+**Duration:** ~90 min.
+**Goal:** Each of you leaves with a CRISPR annotation project under Git
+control, pushed to your own GitHub repo, published via GitHub Pages, with
+Claude Code committing on your behalf at every stage.
 
 ---
 
 ## 1. Welcome back
 
-Recap from Session 1:
+Session 1 deliverables, recap:
 
-- Positron installed and explored
-- Claude Desktop Code tab used to generate `iris_pca.qmd`
-- Published `iris_anova.qmd` and `iris_pca.qmd` to Connect Cloud from the IDE
-- `~/Desktop/iris-test` folder with `iris_anova.R`, `iris_anova.qmd`, `iris_pca.qmd`
+- Positron installed
+- Claude Desktop installed
+- A published Connect Cloud URL of the iris analysis under your name
 
-Today: **add Git to the workflow** - version control, GitHub, and Claude
-Desktop to edit code.
+Today is different in three ways:
 
-> **Notes:** Frame as upgrading from manual publish to a durable pipeline.
-> Session 1 proved the tools work; Session 2 gives them a repeatable workflow
-> for any future project.
+- **Real project.** We are annotating a CRISPR target gene from the LH244 line, using the same `ggplot2` map you would build in production.
+- **Git is the spine.** Every step ends in a commit, so you have a paper trail you can share or roll back.
+- **Claude Code, not Claude Desktop.** We are using the CLI, run from inside Positron's integrated terminal. The sandbox is on. You approve every action.
 
----
-
-## 2. Why version control?
-
-- A safety net (undo any change, ever)
-- A collaboration substrate (share with reviewers, future you, lab)
-- A publishing pipeline (push > Connect Cloud re-renders > URL updates)
-
-> **Notes:** Don't oversell git as a panacea. The pitch is: it's a
-> low-cost habit that pays back the moment you make a mistake or want
-> to share.
+> **Notes:** Don't apologize for the swap from Desktop to CLI. Frame it as
+> "the right tool for shell-heavy work." The sandbox is the safety story
+> they should believe in: Claude proposes, you approve.
 
 ---
 
-## 3. Git setup - configure identity and PAT
+## 2. What you'll leave with today
+
+1. A working `~/crisprpen` project under Git
+2. Pushed to your own GitHub repo
+3. Published at a public GitHub Pages URL with the rendered annotation map
+4. A commit history where Claude wrote the messages and ran the pushes
+
+> **Notes:** Lead with the URL again, like Session 1. The Pages URL is the
+> wow. The commit history is the proof that you stayed in control.
+
+---
+
+## 3. The project, briefly
+
+For one gene (`nmx`):
+
+- Pull exon positions by BLASTing the gene against its cDNA
+- Place CRISPR guides on the gene with `blastn -task blastn-short`
+- Predict primer-pair amplicons with `e-PCR`
+- Draw all of that on a `gggenomes` annotation map
+- Export a GenBank file with every feature, for opening in SnapGene or Benchling later
+
+The pipeline is split into four stages. Each stage ends with a render and a
+commit. We add features to the map one stage at a time.
+
+> **Notes:** Show one of the rendered annotation maps from your real LH244
+> work on the projector. That is the target.
+
+---
+
+## 4. Pre-flight check
+
+Everyone, in `~/crisprpen`:
+
+```bash
+claude --version
+./env/bin/blastn -version
+./env/bin/re-PCR -h 2>&1 | head -3
+R -e 'library(gggenomes); cat("ok\n")'
+```
+
+All four should print without errors. If yours fails, raise your hand now.
+
+> **Notes:** Do not skip this even if everyone replied "all green" to the
+> prereq email. Five minutes here saves a derailed workshop. Have one
+> backup laptop ready for whoever's setup is broken.
+
+---
+
+## 5. Git setup, identity and PAT
 
 From `set_up_git_for_positron.qmd`:
 
@@ -60,169 +99,233 @@ From `set_up_git_for_positron.qmd`:
    usethis::git_sitrep()
    ```
 
-> **Notes:** This is the slowest part - budget 25 min. The PAT step
-> trips people up: it has to be copied *immediately* because GitHub
-> never shows it again. Project this slide while they work.
+> **Notes:** Same advice as the original Session 2 outline. The PAT step
+> is the slowest. Project this slide while they work. Budget 15 min.
+> The PAT must be copied immediately because GitHub never shows it again.
 
 ---
 
-## 4. Turn iris-test into a Git repo
+## 6. Open the project, start Claude Code
 
-You already have `~/Desktop/iris-test` from Session 1. Open it in Positron
-(if not already open), then in the integrated terminal:
+**Mac:** File > Open Folder > `~/crisprpen`.
+
+**Windows:** click the green Remote button (bottom-left of Positron),
+pick `Connect to WSL`, then open `~/crisprpen` from inside the WSL
+connection.
+
+Open the integrated terminal. Type:
+
+```bash
+claude
+```
+
+Approve the sandbox prompt. Leave Claude running. You now have a
+two-pane workspace: editor on the left, Claude in the terminal on the
+right.
+
+> **Notes:** Sandbox approval prompts will appear before any tool call.
+> Tell them: read the prompt, then approve. Approving "yes for this
+> session" is fine for `git`, `R`, and the conda env's tools. Anything
+> outside the project tree, decline.
+
+---
+
+## 7. First prompt, Claude downloads the gene data
+
+Prompt Claude:
+
+```
+Download the nmx gene data from this Drive folder into data/nmx/:
+<paste the link>
+
+Confirm afterwards that genomic.fa, cdna.fa, oligos.fa, and meta.yml
+are present.
+```
+
+Approve the network request. Wait for Claude to confirm the four files.
+
+> **Notes:** Drive direct-download links can require auth. Use a "anyone
+> with the link" share. If Claude gets a permission wall, fall back to a
+> manual browser download and tell Claude where the files landed.
+
+---
+
+## 8. Render stage 1, see the gene
+
+Open `R/annotation_map.qmd`. The setup chunk is already there; it loads
+the gene and prints its name and length.
+
+Render with **Cmd+Shift+K** (Mac) or **Ctrl+Shift+K** (Windows). The
+output goes to `docs/annotation_map.html`.
+
+Open `docs/annotation_map.html` in a browser. You should see the gene
+name, locus ID, length, and a count of exons, guides, and primer pairs.
+
+> **Notes:** This first render is the smoke test. If anything is broken
+> in the inputs or the env, it surfaces here, not three stages later.
+
+---
+
+## 9. First commit, by hand
+
+You do this one yourself so you see plain git, no agent in the way.
 
 ```bash
 git init -b main
 git status
-```
-
-You should see your three files as untracked:
-
-```
-iris_anova.R
-iris_anova.qmd
-iris_pca.qmd
-```
-
-> **Notes:** Point out that `git status` is their diagnostic tool - run it
-> whenever unsure about the state. The Source Control panel in Positron will
-> also light up once Git is initialized.
-
----
-
-## 5. First commit - the project as-is
-
-```bash
-git add .
-git commit -m "Initial commit: iris ANOVA analysis and PCA notebook"
+git add R/ source_qmds/ MANY_GENES_PRD.md crisprpen.yml .gitignore docs/
+git commit -m "first commit: setup chunk renders for nmx"
 git log --oneline
 ```
 
-One commit, three files - everything from Session 1 is now safely versioned.
+Note what is **not** in the commit: `data/`, `results/`, `env/`. They
+are in `.gitignore` and will never be tracked.
 
-> **Notes:** Emphasize that this captures the *known-good* state from
-> Session 1. If anything breaks from here, they can always get back.
-
----
-
-## 6. Push to GitHub
-
-With the GitHub CLI (one-liner):
-
-```bash
-gh repo create iris-test --public --source=. --remote=origin --push
-```
-
-Or the manual way:
-
-```bash
-git remote add origin https://github.com/YOU/iris-test.git
-git branch -M main
-git push -u origin main
-```
-
-Refresh your GitHub page - your files are there.
-
-> **Notes:** The CLI version requires `gh auth login` (covered in the Git
-> setup tutorial). Show both; use whichever is less scary for the group.
+> **Notes:** Point at the Source Control panel in Positron lighting up
+> alongside the terminal output. Same information, two views. They will
+> learn to use whichever they prefer.
 
 ---
 
-## 7. Republish from GitHub
+## 10. Create the GitHub repo via the web UI
 
-In Session 1 you published from the IDE. Now publish from the repo:
+We use the web UI on purpose, so you see what `gh repo create` is
+automating later.
 
-1. [connect.posit.cloud](https://connect.posit.cloud) > **New Content > Publish from Git Repository**
-2. Pick your `YOU/iris-test` repo
-3. Pick `iris_anova.qmd`
-4. Publish > new URL
+1. Go to https://github.com, click **New repository**.
+2. Name it `crisprpen-workshop`. **Public**. **Do not** add a README,
+   `.gitignore`, or license. We have those locally already.
+3. Click **Create repository**.
+4. Follow GitHub's "**push an existing repository from the command line**"
+   block, copy-paste the three commands into your Positron terminal.
+5. Refresh the GitHub page. Your files appear.
 
-From now on, every `git push` triggers a re-render - the URL stays current
-without manual republishing.
+Then enable Pages:
 
-> **Notes:** This is the payoff of adding Git. They already know how to
-> publish; now the *source of truth* is the repo, not the local file.
+6. **Settings > Pages**. Source: **Deploy from a branch**. Branch:
+   **main**, folder: **/docs**. Save.
+7. Wait 1 to 2 minutes. Your URL appears at the top of the Pages
+   settings: `https://YOU.github.io/crisprpen-workshop/annotation_map.html`.
+
+> **Notes:** Pages on a public repo is free. If anyone wants their repo
+> private, they need a Pro account for Pages to serve. Stick to public
+> today.
 
 ---
 
-## 8. Edit with Claude Desktop
+## 11. Stage 2, cDNA annotation, Claude commits
 
-You already have Claude Desktop from Session 1. Prompt it:
+Open `source_qmds/02_cdna.qmd` in a second editor tab. Copy the two
+chunks shown there into `R/annotation_map.qmd` after the `## Gene`
+section. Render.
+
+The map now shows the gene line with exon ribbon.
+
+In the Claude terminal:
 
 ```
-Add a Petal.Length ANOVA section to iris_anova.qmd in ~/Desktop/iris-test,
-then commit and push
+I just added the cDNA exon annotation chunks to R/annotation_map.qmd
+and re-rendered. Commit with a clear message that describes what
+changed, then push.
 ```
 
-Watch Claude:
+Approve. Watch Claude run `git add`, write a commit message based on
+the diff, `git commit`, `git push`. Refresh your Pages URL after a
+minute. The new exon track is live.
 
-- Read the existing `.qmd`
-- Edit the file
-- `git add`, `git commit`, `git push` - all automatic
-
-> **Notes:** No extra install needed. Everyone already has Claude Desktop.
-> The key insight: Claude handles the git commands too. They just prompt
-> and approve.
+> **Notes:** Claude does not write the qmd code. You paste it. Claude
+> writes the commit message and runs the git commands. That separation
+> is the point.
 
 ---
 
-## 9. Check the results in Positron
+## 12. Stage 3, oligos, Claude commits
 
-After Claude commits and pushes:
+Open `source_qmds/03_oligos.qmd`. Copy the **three** chunks in. The
+third chunk **replaces** the existing `plot-exons` chunk with the
+expanded plot. Render.
 
-1. Open `iris_anova.qmd` in Positron - see the new section
-2. Check `git log --oneline` in the terminal - see the commit
-3. Refresh your Connect Cloud URL - the published page updated
+The map now adds CRISPR guide bars and PCR amplicons (predicted by
+e-PCR).
 
-> **Notes:** This is the headline moment of Session 2. Claude wrote
-> code, committed it, pushed it - and the published page updated
-> automatically. They just had to say yes.
-
----
-
-## 10. The full loop
+In the Claude terminal:
 
 ```
-Prompt Claude Desktop > approve > URL updates
+I added guide and amplicon annotation. Commit and push.
 ```
 
-That's it. Under the hood:
+Approve. Refresh your Pages URL.
 
-1. Claude reads your files
-2. Claude edits the code
-3. Claude commits and pushes
-4. Connect Cloud re-renders
-
-You check the results in Positron whenever you want.
-
-> **Notes:** Reinforce that they can always review before approving.
-> Claude shows what it's about to do. `git revert` if something goes
-> wrong. For advanced usage, Claude Code can be installed in the
-> terminal for a tighter integration.
+> **Notes:** This is the visual climax. The map looks like a real
+> annotation now. Linger here.
 
 ---
 
-## 11. Recap - what you can do now
+## 13. Stage 4, GenBank export, Claude commits
 
-- ✅ Version-control your R projects with Git
-- ✅ Push to GitHub and publish from a repo
-- ✅ Use Claude Desktop to edit, commit, and push
-- ✅ The prompt > check > commit > push > publish loop
+Open `source_qmds/04_genbank.qmd`. Copy the two chunks in. Render.
 
-> **Notes:** End on momentum. Don't try to teach more features - point
-> at where to learn next.
+You should see `Wrote ../results/nmx/<locus>_nmx.gbk`. Open the file
+locally. Every feature you saw on the map is in there.
+
+The `.gbk` file lives under `results/`, which is gitignored. It does
+not get pushed and does not reach Pages. The nucleotide content stays
+on your laptop.
+
+In the Claude terminal:
+
+```
+I added the GenBank export step. Commit and push.
+```
+
+Approve.
+
+> **Notes:** Show one of the resulting `.gbk` files in SnapGene or
+> Benchling on the projector if you have one running. The wow is that
+> they wrote a real ready-for-cloning artifact.
 
 ---
 
-## 12. Questions + where to go from here
+## 14. Stage 5, many genes
 
-- Workshop materials: [github.com/faustovrz/ccgarden](https://github.com/faustovrz/ccgarden)
-- Tutorials: `set_up_git_for_positron.qmd` and `build_first_repo_with_positron.qmd`
+Hand Claude the spec:
+
+```
+Read MANY_GENES_PRD.md in the project root. Implement what it asks.
+The single-gene pipeline is in R/annotation_map.qmd. Do not duplicate
+its logic. When the runner works for the gene IDs in data/genes.txt,
+commit and push.
+```
+
+This is the part where Claude works on its own from a written
+specification, not a hand-held step. Watch what it does. Read each
+proposed action before approving. If it goes off-spec, redirect it in
+plain English.
+
+> **Notes:** This slide is intentionally open-ended. There is no fixed
+> right answer to demonstrate. The teaching point is that a written PRD
+> plus an agent on a sandbox is a productive pattern, and that you stay
+> in the loop because of the sandbox prompts.
+
+---
+
+## 15. Recap and where to go
+
+You can now:
+
+- Version-control a real R + bioinformatics project with Git
+- Drive Claude Code from Positron's terminal under a sandbox
+- Publish a rendered notebook at a public GitHub Pages URL
+- Hand Claude a written spec and review its work before approving
+
+Materials and follow-ups:
+
+- Workshop repo: https://github.com/faustovrz/ccgarden
+- Tutorials: `set_up_git_for_positron.qmd`, `build_first_repo_with_positron.qmd`
 - Office hours: [your slot]
 
-Stick around afterwards if you want help getting your *real* project on
-GitHub.
+Stick around if you want help getting your *own* lab repo onto this
+flow.
 
-> **Notes:** Soft-sell one-on-one help. The real win for the lab is
-> when their actual research repos start using this workflow, not the
-> iris demo.
+> **Notes:** The real win is when their actual research repos start
+> using this loop. Soft-sell one-on-one help here.
