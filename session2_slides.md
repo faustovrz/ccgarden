@@ -321,7 +321,7 @@ You can now:
 Materials and follow-ups:
 
 - Workshop repo: https://github.com/faustovrz/ccgarden
-- Tutorials: `set_up_git_for_positron.qmd`, `build_first_repo_with_positron.qmd`
+- Tutorial: `set_up_git_for_positron.qmd`
 - Office hours: [your slot]
 
 Stick around if you want help getting your *own* lab repo onto this
