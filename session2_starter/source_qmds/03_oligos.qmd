@@ -1,18 +1,3 @@
-# Stage 3: Oligo annotation (guides + primer pairs)
-
-Paste the chunks below into `R/annotation_map.qmd` after the `## Exons`
-section. Guides are placed with `blastn -task blastn-short`; primer pairs
-are placed with e-PCR (`re-PCR -s`) so the amplicon span comes from a
-valid pair, not from individual primer hits.
-
-The third chunk replaces the `plot-exons` chunk to add guides and amplicons
-to the annotation map.
-
-## Guides via blastn-short
-
-Add this section header and chunk:
-
-````markdown
 ## Oligos
 
 ```{r blast-guides}
@@ -48,13 +33,7 @@ if (nrow(guide_hits) > 0) {
 
 cat(sprintf("Guides placed: %d\n", nrow(guide_hits)))
 ```
-````
 
-## Primer pairs via e-PCR
-
-Add this chunk after the guide chunk:
-
-````markdown
 ```{r epcr-primers}
 # Build the hash that re-PCR queries against. famap turns the FASTA into a
 # memory-mapped binary; fahash builds the lookup table on top of it.
@@ -135,14 +114,10 @@ unlink(c(famap_file, hash_file))
 cat(sprintf("Predicted amplicons: %d (from %d pairs in STS)\n",
             nrow(amp_hits), nrow(pair_rows)))
 ```
-````
 
-## Annotation map with guides and amplicons
+## Annotation map
 
-Replace the `plot-exons` chunk with this expanded version:
-
-````markdown
-```{r plot-annotation, fig.width=10, fig.height=3.5}
+```{r plot-annotation, fig.width=10, fig.height=2.6}
 gene_seq <- data.frame(seq_id = q$name, length = q$length)
 
 exon_feats <- if (nrow(exon_hits) > 0) {
@@ -173,15 +148,14 @@ guide_feats <- if (nrow(guide_hits) > 0) {
              stringsAsFactors = FALSE)
 }
 
-# Render amplicons as gggenomes "genes" so the strand arrow is visible.
-amp_genes <- if (nrow(amp_hits) > 0) {
-  is_rev <- amp_hits$strand == "-"
+amp_feats <- if (nrow(amp_hits) > 0) {
   data.frame(
     seq_id    = amp_hits$seq_id,
-    start     = ifelse(is_rev, amp_hits$end,   amp_hits$start),
-    end       = ifelse(is_rev, amp_hits$start, amp_hits$end),
+    start     = pmin(amp_hits$start, amp_hits$end),
+    end       = pmax(amp_hits$start, amp_hits$end),
     feat_type = "Amplicon",
-    name      = sprintf("pair_%s", amp_hits$pair),
+    name      = sprintf("%s · %s (%d bp)",
+                        amp_hits$forward_id, amp_hits$reverse_id, amp_hits$size),
     stringsAsFactors = FALSE
   )
 } else {
@@ -190,32 +164,84 @@ amp_genes <- if (nrow(amp_hits) > 0) {
              stringsAsFactors = FALSE)
 }
 
+# Primer binding sites at the amplicon edges. Drawn as gggenomes "genes" so
+# each one is an arrow showing its orientation. Forward primer occupies the
+# first fwd_len bp of the amplicon on the strand re-PCR reported; reverse
+# primer occupies the last rev_len bp on the opposite strand.
+primer_genes <- if (nrow(amp_hits) > 0) {
+  do.call(rbind, lapply(seq_len(nrow(amp_hits)), function(i) {
+    a       <- amp_hits[i, ]
+    amp_lo  <- min(a$start, a$end)
+    amp_hi  <- max(a$start, a$end)
+    fwd_seq <- oligo_seq_lookup[[a$forward_id]]
+    rev_seq <- oligo_seq_lookup[[a$reverse_id]]
+    fwd_len <- if (!is.null(fwd_seq)) nchar(fwd_seq) else 20L
+    rev_len <- if (!is.null(rev_seq)) nchar(rev_seq) else 20L
+    if (is.na(a$strand) || a$strand == "+") {
+      data.frame(
+        seq_id = c(a$seq_id, a$seq_id),
+        start  = c(amp_lo,                 amp_hi),
+        end    = c(amp_lo + fwd_len - 1L,  amp_hi - rev_len + 1L),
+        feat_type = c("forward_primer", "reverse_primer"),
+        name      = c(a$forward_id,    a$reverse_id),
+        stringsAsFactors = FALSE
+      )
+    } else {
+      data.frame(
+        seq_id = c(a$seq_id, a$seq_id),
+        start  = c(amp_hi,                 amp_lo),
+        end    = c(amp_hi - fwd_len + 1L,  amp_lo + rev_len - 1L),
+        feat_type = c("forward_primer", "reverse_primer"),
+        name      = c(a$forward_id,    a$reverse_id),
+        stringsAsFactors = FALSE
+      )
+    }
+  }))
+} else {
+  data.frame(seq_id = character(0), start = integer(0), end = integer(0),
+             feat_type = character(0), name = character(0),
+             stringsAsFactors = FALSE)
+}
+
 p <- gggenomes(
   seqs  = gene_seq,
-  genes = amp_genes,
-  feats = list(exons = exon_feats, guides = guide_feats)
+  genes = primer_genes,
+  feats = list(exons = exon_feats, guides = guide_feats, amplicons = amp_feats)
 ) +
   geom_seq() +
-  geom_feat(data = feats(exons), aes(y = y - 0.15, yend = y - 0.15,
-            color = feat_type),
-            position = "identity", linewidth = 5, alpha = 0.8) +
-  geom_feat(data = feats(guides), aes(color = feat_type), linewidth = 2) +
-  geom_feat_label(data = feats(guides), aes(label = name),
-                  size = 2.5, nudge_y = 0.05, color = "#D94040") +
-  geom_gene(aes(fill = feat_type), color = NA, size = 10) +
-  geom_gene_label(aes(label = name), size = 2.5, nudge_y = 0.05) +
+  geom_feat(data = feats(exons),
+            aes(y = y - 0.18, yend = y - 0.18, color = feat_type),
+            position = "identity", linewidth = 5, alpha = 0.85) +
+  geom_feat(data = feats(amplicons),
+            aes(y = y + 0.22, yend = y + 0.22, color = feat_type),
+            position = "identity", linewidth = 2.5, alpha = 0.7) +
+  geom_feat(data = feats(guides),
+            aes(color = feat_type), linewidth = 2) +
+  geom_feat_label(data = feats(guides),
+                  aes(label = name),
+                  size = 2.4, nudge_y = 0.05, color = "#D94040") +
+  geom_gene(aes(fill = feat_type), color = NA, size = 6) +
+  geom_gene_label(aes(label = name), size = 2.4, nudge_y = -0.07) +
   scale_color_manual(
     name   = NULL,
-    values = c("Exon" = "#DAA520", "CRISPR_guide" = "#D94040"),
-    labels = c("Exon" = "Exon", "CRISPR_guide" = "CRISPR guide")
+    values = c("Exon" = "#DAA520",
+               "CRISPR_guide" = "#D94040",
+               "Amplicon" = "#40A0D0"),
+    labels = c("Exon" = "Exon",
+               "CRISPR_guide" = "CRISPR guide",
+               "Amplicon" = "PCR amplicon")
   ) +
   scale_fill_manual(
     name   = NULL,
-    values = c("Amplicon" = "#40A0D0"),
-    labels = c("Amplicon" = "PCR amplicon (e-PCR)")
+    values = c("forward_primer" = "#40A040",
+               "reverse_primer" = "#9060C0"),
+    labels = c("forward_primer" = "Forward primer",
+               "reverse_primer" = "Reverse primer")
   ) +
   labs(title = sprintf("%s (%s)", q$gene_name, q$name)) +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom",
+        legend.box = "horizontal",
+        legend.margin = margin(0, 0, 0, 0))
 
 if (!is.null(meta$gene_offset) && meta$gene_offset > 0) {
   gene_start <- meta$gene_offset + 1
@@ -229,4 +255,3 @@ if (!is.null(meta$gene_offset) && meta$gene_offset > 0) {
 
 print(p)
 ```
-````

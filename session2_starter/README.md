@@ -9,13 +9,26 @@ into your own working directory and follow the slides.
 _quarto.yml           # quarto project config (output goes to docs/)
 crisprpen.yml         # conda env: blast + e-pcr
 .gitignore            # keeps env/, data/, results/ out of your repo
-annotation_map.qmd    # the qmd you render
-source_qmds/          # paste sources for stages 2 to 4
-  02_cdna.qmd
-  03_oligos.qmd
-  04_genbank.qmd
+source_qmds/          # the pipeline, sliced into four cat-able files
+  01_setup.qmd        #   YAML, gggenomes, inputs, gene parsing
+  02_cdna.qmd         #   exon BLAST
+  03_oligos.qmd       #   guide BLAST, e-PCR amplicons, annotation map
+  04_genbank.qmd      #   GenBank export
 MANY_GENES_PRD.md     # spec for the final many-genes prompt
 ```
+
+There is **no `annotation_map.qmd` in the starter**. You build it by
+concatenating the slices, one stage at a time:
+
+```bash
+cat source_qmds/01_setup.qmd  >  annotation_map.qmd   # stage 1
+cat source_qmds/02_cdna.qmd   >> annotation_map.qmd   # stage 2
+cat source_qmds/03_oligos.qmd >> annotation_map.qmd   # stage 3
+cat source_qmds/04_genbank.qmd >> annotation_map.qmd  # stage 4
+```
+
+After stage 4, `cat source_qmds/*.qmd > annotation_map.qmd` produces
+the same final file.
 
 The pipeline expects per-gene inputs under `data/<gene_id>/`. The
 `data/` folder is gitignored, so nothing in it is tracked. Populate it

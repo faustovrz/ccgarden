@@ -160,10 +160,14 @@ Both should list four files each.
 
 ---
 
-## 8. Render stage 1, see the gene
+## 8. Build and render stage 1
 
-Open `annotation_map.qmd`. The setup chunk is already there; it loads
-the gene and prints its name and length.
+The pipeline is delivered as four concatenable slices in `source_qmds/`.
+Build your `annotation_map.qmd` from the first slice:
+
+```bash
+cat source_qmds/01_setup.qmd > annotation_map.qmd
+```
 
 Render with **Cmd+Shift+K** (Mac) or **Ctrl+Shift+K** (Windows). The
 output goes to `docs/annotation_map.html`.
@@ -173,6 +177,8 @@ name, locus ID, length, and a count of exons, guides, and primer pairs.
 
 > **Notes:** This first render is the smoke test. If anything is broken
 > in the inputs or the env, it surfaces here, not three stages later.
+> The `cat ... >` form is single redirect (overwrite). Later stages use
+> `cat ... >>` (append).
 
 ---
 
@@ -225,38 +231,44 @@ Then enable Pages:
 
 ## 11. Stage 2, cDNA annotation, Claude commits
 
-Open `source_qmds/02_cdna.qmd` in a second editor tab. Copy the two
-chunks shown there into `annotation_map.qmd` after the `## Gene`
-section. Render.
+Append stage 2 to the working qmd and render:
 
-The map now shows the gene line with exon ribbon.
+```bash
+cat source_qmds/02_cdna.qmd >> annotation_map.qmd
+```
+
+Render. The output now reports how many exons BLAST found against the
+cDNA.
 
 In the Claude terminal:
 
 ```
-I just added the cDNA exon annotation chunks to annotation_map.qmd
-and re-rendered. Commit with a clear message that describes what
-changed, then push.
+I just appended source_qmds/02_cdna.qmd to annotation_map.qmd and
+re-rendered. Commit with a clear message that describes what changed,
+then push.
 ```
 
 Approve. Watch Claude run `git add`, write a commit message based on
 the diff, `git commit`, `git push`. Refresh your Pages URL after a
-minute. The new exon track is live.
+minute. The new exon counts are live.
 
-> **Notes:** Claude does not write the qmd code. You paste it. Claude
-> writes the commit message and runs the git commands. That separation
-> is the point.
+> **Notes:** Claude does not write the qmd code. You append the slice
+> with `cat`. Claude writes the commit message and runs the git
+> commands. That separation is the point.
 
 ---
 
 ## 12. Stage 3, oligos, Claude commits
 
-Open `source_qmds/03_oligos.qmd`. Copy the **three** chunks in. The
-third chunk **replaces** the existing `plot-exons` chunk with the
-expanded plot. Render.
+Append stage 3 and render:
 
-The map now adds CRISPR guide bars and PCR amplicons (predicted by
-e-PCR).
+```bash
+cat source_qmds/03_oligos.qmd >> annotation_map.qmd
+```
+
+Render. The annotation map appears for the first time: gene line,
+exon ribbon, guide bars, amplicon span, and forward/reverse primer
+arrows at the amplicon edges.
 
 In the Claude terminal:
 
@@ -273,7 +285,13 @@ Approve. Refresh your Pages URL.
 
 ## 13. Stage 4, GenBank export, Claude commits
 
-Open `source_qmds/04_genbank.qmd`. Copy the two chunks in. Render.
+Append stage 4 and render:
+
+```bash
+cat source_qmds/04_genbank.qmd >> annotation_map.qmd
+```
+
+Render.
 
 You should see `Wrote ../results/nmx/<locus>_nmx.gbk`. Open the file
 locally. Every feature you saw on the map is in there.

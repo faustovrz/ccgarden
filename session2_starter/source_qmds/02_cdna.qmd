@@ -1,13 +1,3 @@
-# Stage 2: cDNA exon annotation
-
-Paste both chunks below into `R/annotation_map.qmd` after the `## Gene`
-section. Render to verify, then prompt Claude to commit and push.
-
-## Exon BLAST
-
-Add this section header and chunk:
-
-````markdown
 ## Exons
 
 ```{r blast-exons}
@@ -36,52 +26,3 @@ exon_hits <- if (length(exon_out) > 0) {
 
 cat(sprintf("Exons found: %d HSPs against the cDNA\n", nrow(exon_hits)))
 ```
-````
-
-## Annotation map (gene + exons)
-
-Then add this section and chunk:
-
-````markdown
-## Annotation map
-
-```{r plot-exons, fig.width=10, fig.height=2.5}
-gene_seq <- data.frame(
-  seq_id = q$name,
-  length = q$length
-)
-
-exon_feats <- if (nrow(exon_hits) > 0) {
-  data.frame(
-    seq_id    = exon_hits$Query,
-    start     = pmin(exon_hits$Q.start, exon_hits$Q.end),
-    end       = pmax(exon_hits$Q.start, exon_hits$Q.end),
-    feat_type = "Exon",
-    stringsAsFactors = FALSE
-  )
-} else {
-  data.frame(seq_id = character(0), start = integer(0), end = integer(0),
-             feat_type = character(0), stringsAsFactors = FALSE)
-}
-
-p <- gggenomes(seqs = gene_seq, feats = list(exons = exon_feats)) +
-  geom_seq() +
-  geom_feat(data = feats(exons), aes(color = feat_type),
-            position = "identity", linewidth = 5, alpha = 0.8) +
-  scale_color_manual(name = NULL, values = c("Exon" = "#DAA520")) +
-  labs(title = sprintf("%s (%s)", q$gene_name, q$name)) +
-  theme(legend.position = "bottom")
-
-if (!is.null(meta$gene_offset) && meta$gene_offset > 0) {
-  gene_start <- meta$gene_offset + 1
-  gene_end   <- meta$gene_offset + meta$gene_length
-  p <- p +
-    geom_vline(xintercept = gene_start, linetype = "dashed",
-               color = "grey40", linewidth = 0.4) +
-    geom_vline(xintercept = gene_end, linetype = "dashed",
-               color = "grey40", linewidth = 0.4)
-}
-
-print(p)
-```
-````

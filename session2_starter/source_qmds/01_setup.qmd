@@ -60,9 +60,6 @@ parse_fasta <- function(fasta_file) {
   })
 }
 
-# Returns one row per oligo with columns: oligo_id, oligo_type, pair.
-# `pair` is NA for guides; non-NA for forward_primer / reverse_primer rows
-# that share a value to identify which forward goes with which reverse.
 parse_oligo_meta <- function(fasta_file) {
   hdrs <- grep("^>", readLines(fasta_file, warn = FALSE), value = TRUE)
   do.call(rbind, lapply(hdrs, function(h) {
@@ -79,8 +76,6 @@ parse_oligo_meta <- function(fasta_file) {
   }))
 }
 
-# Read the gene record from gene.gff3 and return chr, start, end, strand.
-# Picks the first row whose type column is "gene".
 read_gene_record <- function(gff_file) {
   gff <- read.table(gff_file, sep = "\t", quote = "", comment.char = "#",
                     stringsAsFactors = FALSE, fill = TRUE,
@@ -110,9 +105,6 @@ oligo_records <- parse_fasta(oligo_path)
 oligo_meta    <- parse_oligo_meta(oligo_path)
 gene_rec      <- read_gene_record(gff_path)
 
-# Build a `meta` list with everything the later chunks expect. All fields
-# derive from gene.gff3 and the padded genomic.fa, so there is no meta.yml.
-# Assumes symmetric padding (the same flank on each side of the gene).
 gene_length <- gene_rec$gene_end - gene_rec$gene_start + 1L
 padded_len  <- q$length
 gene_offset <- (padded_len - gene_length) %/% 2L

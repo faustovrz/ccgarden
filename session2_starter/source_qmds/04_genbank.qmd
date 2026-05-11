@@ -1,15 +1,3 @@
-# Stage 4: GenBank export
-
-Paste the section below into `R/annotation_map.qmd` after the annotation map.
-The output `.gbk` file goes to `results/`, which is gitignored, so the
-nucleotide content is never published. Only the rendered HTML in `docs/`
-goes to GitHub Pages.
-
-The `primer_bind` features are derived from the e-PCR amplicon coordinates:
-the forward primer occupies the first N bases of the amplicon (where N is
-the forward primer length), the reverse primer occupies the last M bases.
-
-````markdown
 ## GenBank export
 
 ```{r genbank-helpers}
@@ -163,7 +151,6 @@ if (exists("amp_hits") && nrow(amp_hits) > 0) {
       )
     )
 
-    # forward primer at the 5' end of the amplicon (relative to amplicon strand)
     if (amp_strand == "+") {
       fwd_loc <- gbk_location(amp_start, amp_start + fwd_len - 1L, "+")
       rev_loc <- gbk_location(amp_end - rev_len + 1L, amp_end, "-")
@@ -197,4 +184,3 @@ write_genbank(gbk_path, q$gene_name, q$name, q$sequence, features, comment_lines
 
 cat(sprintf("Wrote %s (%d features)\n", gbk_path, length(features)))
 ```
-````
