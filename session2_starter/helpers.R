@@ -1,0 +1,400 @@
+# Helpers for the CRISPR target gene annotation pipeline.
+# Sourced from annotation_map.qmd. Kept here so the rendered notebook
+# focuses on the pipeline, not on string formatting or feature plumbing.
+
+# ---------------------------------------------------------------------
+# FASTA parsing
+
+parse_fasta <- function(fasta_file) {
+  lines <- readLines(fasta_file, warn = FALSE)
+  idx   <- grep("^>", lines)
+  lapply(seq_along(idx), function(i) {
+    start <- idx[i]
+    end   <- if (i < length(idx)) idx[i + 1] - 1 else length(lines)
+    hdr   <- sub("^>", "", lines[start])
+    seq_text <- paste(lines[(start + 1):end], collapse = "")
+    parts <- strsplit(hdr, "\\s+")[[1]]
+    list(
+      header   = hdr,
+      name     = parts[1],
+      sequence = seq_text,
+      length   = nchar(seq_text)
+    )
+  })
+}
+
+parse_oligo_meta <- function(fasta_file) {
+  hdrs <- grep("^>", readLines(fasta_file, warn = FALSE), value = TRUE)
+  do.call(rbind, lapply(hdrs, function(h) {
+    h <- sub("^>", "", h)
+    parts  <- strsplit(h, "\\s+")[[1]]
+    type_f <- sub("^type=", "", grep("^type=", parts, value = TRUE))
+    pair_f <- sub("^pair=", "", grep("^pair=", parts, value = TRUE))
+    data.frame(
+      oligo_id   = parts[1],
+      oligo_type = ifelse(length(type_f) > 0, type_f, NA_character_),
+      pair       = ifelse(length(pair_f) > 0, pair_f, NA_character_),
+      stringsAsFactors = FALSE
+    )
+  }))
+}
+
+read_gene_record <- function(gff_file) {
+  gff <- read.table(gff_file, sep = "\t", quote = "", comment.char = "#",
+                    stringsAsFactors = FALSE, fill = TRUE,
+                    col.names = c("chr", "source", "type", "start", "end",
+                                  "score", "strand", "phase", "attributes"))
+  gene <- gff[gff$type == "gene", ][1, ]
+  stopifnot("No 'gene' record in gene.gff3" = nrow(gene) == 1 && !is.na(gene$chr))
+  list(
+    chromosome = gene$chr,
+    strand     = gene$strand,
+    gene_start = as.integer(gene$start),
+    gene_end   = as.integer(gene$end)
+  )
+}
+
+# ---------------------------------------------------------------------
+# Unified annotation table
+#
+# One row per feature on the gene-forward padded genomic sequence.
+# Columns:
+#   seq_id     character    FASTA ID of the padded genomic record
+#   feat_type  character    gene | exon | CRISPR_guide | Amplicon |
+#                            forward_primer | reverse_primer
+#   start      integer      1-based, start <= end
+#   end        integer      1-based, end >= start
+#   strand     character    "+" or "-"
+#   name       character    label
+#   note       character    freeform note (may be empty)
+
+empty_annotation_row <- function() {
+  data.frame(seq_id = character(0), feat_type = character(0),
+             start = integer(0), end = integer(0),
+             strand = character(0), name = character(0), note = character(0),
+             stringsAsFactors = FALSE)
+}
+
+build_annotation_table <- function(q, meta, exon_hits, guide_hits, amp_hits,
+                                   oligo_seq_lookup) {
+  rows <- list()
+
+  # gene (on the gene-forward genomic.fa, the gene runs "+")
+  if (!is.null(meta$gene_offset) && meta$gene_offset > 0) {
+    rows[[length(rows) + 1]] <- data.frame(
+      seq_id = q$name, feat_type = "gene",
+      start  = meta$gene_offset + 1L,
+      end    = meta$gene_offset + meta$gene_length,
+      strand = "+", name = q$gene_name,
+      note   = sprintf("locus_tag=%s", q$name),
+      stringsAsFactors = FALSE
+    )
+  }
+
+  # exons
+  if (!is.null(exon_hits) && nrow(exon_hits) > 0) {
+    ordered <- exon_hits[order(pmin(exon_hits$Q.start, exon_hits$Q.end)), ]
+    for (j in seq_len(nrow(ordered))) {
+      ex <- ordered[j, ]
+      rows[[length(rows) + 1]] <- data.frame(
+        seq_id = ex$Query, feat_type = "exon",
+        start  = min(ex$Q.start, ex$Q.end),
+        end    = max(ex$Q.start, ex$Q.end),
+        strand = "+", name = sprintf("exon_%d", j),
+        note   = sprintf("identity=%.1f%%", ex$Identity),
+        stringsAsFactors = FALSE
+      )
+    }
+  }
+
+  # CRISPR guides
+  if (!is.null(guide_hits) && nrow(guide_hits) > 0) {
+    for (j in seq_len(nrow(guide_hits))) {
+      g <- guide_hits[j, ]
+      rows[[length(rows) + 1]] <- data.frame(
+        seq_id = g$Query, feat_type = "CRISPR_guide",
+        start  = min(g$Q.start, g$Q.end),
+        end    = max(g$Q.start, g$Q.end),
+        strand = g$strand, name = g$Subject, note = "",
+        stringsAsFactors = FALSE
+      )
+    }
+  }
+
+  # Amplicons + derived primer_bind rows
+  if (!is.null(amp_hits) && nrow(amp_hits) > 0) {
+    for (j in seq_len(nrow(amp_hits))) {
+      a <- amp_hits[j, ]
+      amp_strand <- if (is.na(a$strand) || a$strand == "+") "+" else "-"
+      amp_lo <- min(a$start, a$end)
+      amp_hi <- max(a$start, a$end)
+
+      rows[[length(rows) + 1]] <- data.frame(
+        seq_id = a$seq_id, feat_type = "Amplicon",
+        start = amp_lo, end = amp_hi, strand = amp_strand,
+        name = sprintf("pair_%s", a$pair),
+        note = sprintf("e-PCR predicted product, %d bp", a$size),
+        stringsAsFactors = FALSE
+      )
+
+      fwd_seq <- oligo_seq_lookup[[a$forward_id]]
+      rev_seq <- oligo_seq_lookup[[a$reverse_id]]
+      fwd_len <- if (!is.null(fwd_seq)) nchar(fwd_seq) else 20L
+      rev_len <- if (!is.null(rev_seq)) nchar(rev_seq) else 20L
+
+      if (amp_strand == "+") {
+        fwd_start <- amp_lo
+        fwd_end   <- amp_lo + fwd_len - 1L
+        rev_start <- amp_hi - rev_len + 1L
+        rev_end   <- amp_hi
+        fwd_str   <- "+"
+        rev_str   <- "-"
+      } else {
+        fwd_start <- amp_hi - fwd_len + 1L
+        fwd_end   <- amp_hi
+        rev_start <- amp_lo
+        rev_end   <- amp_lo + rev_len - 1L
+        fwd_str   <- "-"
+        rev_str   <- "+"
+      }
+
+      rows[[length(rows) + 1]] <- data.frame(
+        seq_id = a$seq_id, feat_type = "forward_primer",
+        start = fwd_start, end = fwd_end, strand = fwd_str,
+        name = a$forward_id, note = sprintf("pair=%s", a$pair),
+        stringsAsFactors = FALSE
+      )
+      rows[[length(rows) + 1]] <- data.frame(
+        seq_id = a$seq_id, feat_type = "reverse_primer",
+        start = rev_start, end = rev_end, strand = rev_str,
+        name = a$reverse_id, note = sprintf("pair=%s", a$pair),
+        stringsAsFactors = FALSE
+      )
+    }
+  }
+
+  if (length(rows) == 0) return(empty_annotation_row())
+  do.call(rbind, rows)
+}
+
+# ---------------------------------------------------------------------
+# GenBank flat-file writer
+
+gbk_location <- function(start, end, strand = "+") {
+  s <- min(start, end)
+  e <- max(start, end)
+  if (strand == "-") sprintf("complement(%d..%d)", s, e)
+  else               sprintf("%d..%d", s, e)
+}
+
+# GenBank feature type for each annotation feat_type. Anything not in the
+# map falls back to "misc_feature".
+GBK_TYPE_MAP <- c(
+  gene            = "gene",
+  exon            = "exon",
+  CRISPR_guide    = "misc_binding",
+  Amplicon        = "misc_feature",
+  forward_primer  = "primer_bind",
+  reverse_primer  = "primer_bind"
+)
+
+build_genbank_comments <- function(meta) {
+  c(
+    sprintf("Chromosome: %s", meta$chromosome),
+    sprintf("Strand: %s", meta$strand),
+    sprintf("Padded region: %s:%d..%d (+/-%d bp flanking)",
+            meta$chromosome, meta$padded_start, meta$padded_end, meta$flank_bp)
+  )
+}
+
+# Build the GenBank features list from the unified annotation table plus
+# a source feature derived from `meta` and `q`. Each annotation row
+# becomes one GenBank feature; the gbk feature type comes from
+# GBK_TYPE_MAP.
+build_genbank_features <- function(annotation, q, meta) {
+  features <- list()
+
+  # source (not in the annotation table; describes the whole record)
+  features[[length(features) + 1]] <- list(
+    type = "source",
+    location = sprintf("1..%d", q$length),
+    qualifiers = list(
+      list(key = "organism", value = "Zea mays"),
+      list(key = "mol_type", value = "genomic DNA"),
+      list(key = "cultivar", value = "LH244"),
+      list(key = "db_xref",  value = "taxon:4577"),
+      list(key = "chromosome", value = meta$chromosome),
+      list(key = "note",     value = sprintf("LH244 CAU padded region: %s:%d..%d(%s)",
+                                             meta$chromosome, meta$padded_start,
+                                             meta$padded_end, meta$strand))
+    )
+  )
+
+  for (i in seq_len(nrow(annotation))) {
+    row <- annotation[i, ]
+    gbk_type <- GBK_TYPE_MAP[row$feat_type]
+    if (is.na(gbk_type)) gbk_type <- "misc_feature"
+
+    quals <- list(list(key = "label", value = row$name))
+    # Special-case the gene feature so it carries /gene and /locus_tag like a
+    # canonical NCBI gene record.
+    if (row$feat_type == "gene") {
+      quals <- list(
+        list(key = "gene",      value = row$name),
+        list(key = "locus_tag", value = sub("^locus_tag=", "", row$note))
+      )
+    } else if (nzchar(row$note)) {
+      quals <- c(quals, list(list(key = "note", value = row$note)))
+    }
+
+    features[[length(features) + 1]] <- list(
+      type = gbk_type,
+      location = gbk_location(row$start, row$end, row$strand),
+      qualifiers = quals
+    )
+  }
+  features
+}
+
+write_genbank <- function(filepath, gene_name, locus_id, sequence, features,
+                          comment_lines = character(0)) {
+  seq_len_val <- nchar(sequence)
+  date_str    <- toupper(format(Sys.Date(), "%d-%b-%Y"))
+  lines <- character(0)
+
+  lines <- c(lines, sprintf("LOCUS       %-16s %7d bp    DNA     linear   PLN %s",
+                            locus_id, seq_len_val, date_str))
+  lines <- c(lines, sprintf("DEFINITION  Zea mays cultivar LH244 %s (%s) genomic sequence.",
+                            locus_id, gene_name))
+  lines <- c(lines, sprintf("ACCESSION   %s", locus_id))
+  lines <- c(lines, sprintf("VERSION     %s", locus_id))
+  lines <- c(lines, "KEYWORDS    .")
+  lines <- c(lines, "SOURCE      Zea mays (maize)")
+  lines <- c(lines, "  ORGANISM  Zea mays")
+  lines <- c(lines, "            Eukaryota; Viridiplantae; Streptophyta; Embryophyta;")
+  lines <- c(lines, "            Tracheophyta; Spermatophyta; Magnoliopsida; Liliopsida;")
+  lines <- c(lines, "            Poales; Poaceae; PACMAD clade; Panicoideae;")
+  lines <- c(lines, "            Andropogonodae; Andropogoneae; Tripsacinae; Zea.")
+
+  if (length(comment_lines) > 0) {
+    lines <- c(lines, sprintf("COMMENT     %s", comment_lines[1]))
+    for (cl in comment_lines[-1]) {
+      lines <- c(lines, sprintf("            %s", cl))
+    }
+  }
+
+  lines <- c(lines, "FEATURES             Location/Qualifiers")
+  for (feat in features) {
+    lines <- c(lines, sprintf("     %-16s%s", feat$type, feat$location))
+    for (qual in feat$qualifiers) {
+      lines <- c(lines, sprintf("                     /%s=\"%s\"", qual$key, qual$value))
+    }
+  }
+
+  seq_lower <- tolower(sequence)
+  lines <- c(lines, "ORIGIN")
+  for (start_pos in seq(1, seq_len_val, by = 60)) {
+    end_pos <- min(start_pos + 59, seq_len_val)
+    chunk   <- substr(seq_lower, start_pos, end_pos)
+    groups  <- regmatches(chunk, gregexpr(".{1,10}", chunk))[[1]]
+    lines <- c(lines, sprintf("%9d %s", start_pos, paste(groups, collapse = " ")))
+  }
+  lines <- c(lines, "//")
+  writeLines(lines, filepath)
+}
+
+# ---------------------------------------------------------------------
+# Plot
+
+# Build the gggenomes annotation map directly from the unified annotation
+# table. Returns a ggplot object the chunk just prints.
+plot_annotation <- function(annotation, q, meta) {
+  gene_seq <- data.frame(seq_id = q$name, length = q$length)
+
+  pick <- function(types) {
+    rows <- annotation[annotation$feat_type %in% types,
+                        c("seq_id", "start", "end", "feat_type", "name")]
+    if (nrow(rows) == 0) {
+      data.frame(seq_id = character(0), start = integer(0), end = integer(0),
+                 feat_type = character(0), name = character(0),
+                 stringsAsFactors = FALSE)
+    } else rows
+  }
+
+  exon_feats  <- pick("exon")
+  if (nrow(exon_feats) > 0) exon_feats$feat_type <- "Exon"
+
+  guide_feats <- pick("CRISPR_guide")
+  amp_feats   <- pick("Amplicon")
+
+  # Primers: gggenomes draws "genes" as arrows; flip start/end for "-" strand
+  # rows so the arrow points the right way.
+  primer_rows <- annotation[annotation$feat_type %in% c("forward_primer", "reverse_primer"), ]
+  primer_genes <- if (nrow(primer_rows) > 0) {
+    is_rev <- primer_rows$strand == "-"
+    data.frame(
+      seq_id    = primer_rows$seq_id,
+      start     = ifelse(is_rev, primer_rows$end,   primer_rows$start),
+      end       = ifelse(is_rev, primer_rows$start, primer_rows$end),
+      feat_type = primer_rows$feat_type,
+      name      = primer_rows$name,
+      stringsAsFactors = FALSE
+    )
+  } else {
+    data.frame(seq_id = character(0), start = integer(0), end = integer(0),
+               feat_type = character(0), name = character(0),
+               stringsAsFactors = FALSE)
+  }
+
+  p <- gggenomes(
+    seqs  = gene_seq,
+    genes = primer_genes,
+    feats = list(exons = exon_feats, guides = guide_feats, amplicons = amp_feats)
+  ) +
+    geom_seq() +
+    geom_feat(data = feats(exons),
+              aes(y = y - 0.18, yend = y - 0.18, color = feat_type),
+              position = "identity", linewidth = 5, alpha = 0.85) +
+    geom_feat(data = feats(amplicons),
+              aes(y = y + 0.22, yend = y + 0.22, color = feat_type),
+              position = "identity", linewidth = 2.5, alpha = 0.7) +
+    geom_feat(data = feats(guides),
+              aes(color = feat_type), linewidth = 2) +
+    geom_feat_label(data = feats(guides),
+                    aes(label = name),
+                    size = 2.4, nudge_y = 0.05, color = "#D94040") +
+    geom_gene(aes(fill = feat_type), color = NA, size = 6) +
+    geom_gene_label(aes(label = name), size = 2.4, nudge_y = -0.07) +
+    scale_color_manual(
+      name   = NULL,
+      values = c("Exon" = "#DAA520",
+                 "CRISPR_guide" = "#D94040",
+                 "Amplicon" = "#40A0D0"),
+      labels = c("Exon" = "Exon",
+                 "CRISPR_guide" = "CRISPR guide",
+                 "Amplicon" = "PCR amplicon")
+    ) +
+    scale_fill_manual(
+      name   = NULL,
+      values = c("forward_primer" = "#40A040",
+                 "reverse_primer" = "#9060C0"),
+      labels = c("forward_primer" = "Forward primer",
+                 "reverse_primer" = "Reverse primer")
+    ) +
+    labs(title = sprintf("%s (%s)", q$gene_name, q$name)) +
+    theme(legend.position = "bottom",
+          legend.box = "horizontal",
+          legend.margin = margin(0, 0, 0, 0))
+
+  if (!is.null(meta$gene_offset) && meta$gene_offset > 0) {
+    gene_start <- meta$gene_offset + 1
+    gene_end   <- meta$gene_offset + meta$gene_length
+    p <- p +
+      geom_vline(xintercept = gene_start, linetype = "dashed",
+                 color = "grey40", linewidth = 0.4) +
+      geom_vline(xintercept = gene_end, linetype = "dashed",
+                 color = "grey40", linewidth = 0.4)
+  }
+
+  p
+}

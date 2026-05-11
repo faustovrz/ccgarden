@@ -24,7 +24,6 @@ if (nrow(guide_hits) > 0) {
   guide_hits <- merge(guide_hits, oligo_meta,
                       by.x = "Subject", by.y = "oligo_id", all.x = TRUE)
   guide_hits$strand <- ifelse(guide_hits$S.start <= guide_hits$S.end, "+", "-")
-  # Keep guides only, near-full-length, high-identity
   guide_hits <- guide_hits[
     guide_hits$oligo_type == "CRISPR_guide" &
     guide_hits$Aln.Length >= (guide_hits$S.len - 2) &
@@ -44,7 +43,6 @@ system2("famap",  c("-t", "N", "-b", famap_file, genomic_path),
 system2("fahash", c("-b", hash_file, famap_file),
         stdout = FALSE, stderr = FALSE)
 
-# Build STS file for re-PCR: one line per primer pair.
 oligo_seq_lookup <- setNames(
   vapply(oligo_records, function(x) x$sequence, character(1)),
   vapply(oligo_records, function(x) x$name,     character(1))
@@ -85,9 +83,6 @@ amp_hits <- data.frame(
 if (length(sts_lines) > 0) {
   sts_file <- tempfile(fileext = ".sts")
   writeLines(sts_lines, sts_file)
-
-  # re-PCR -S takes hash_file then sts_file. Output columns:
-  #   sts_name  seq_id  strand  from  to  mism  gaps  act/exp_len
   epcr_out <- system2("re-PCR", c("-S", hash_file, sts_file),
                       stdout = TRUE, stderr = FALSE)
   unlink(sts_file)
@@ -115,143 +110,23 @@ cat(sprintf("Predicted amplicons: %d (from %d pairs in STS)\n",
             nrow(amp_hits), nrow(pair_rows)))
 ```
 
+## Annotation table
+
+```{r build-annotation-table}
+annotation <- build_annotation_table(q, meta, exon_hits, guide_hits,
+                                     amp_hits, oligo_seq_lookup)
+cat(sprintf("Annotation rows: %d\n", nrow(annotation)))
+knitr::kable(
+  with(annotation, data.frame(
+    feat_type, name, start, end, strand,
+    note = ifelse(nchar(note) > 40, paste0(substr(note, 1, 37), "..."), note)
+  )),
+  caption = "Unified annotation table"
+)
+```
+
 ## Annotation map
 
 ```{r plot-annotation, fig.width=10, fig.height=2.6}
-gene_seq <- data.frame(seq_id = q$name, length = q$length)
-
-exon_feats <- if (nrow(exon_hits) > 0) {
-  data.frame(
-    seq_id    = exon_hits$Query,
-    start     = pmin(exon_hits$Q.start, exon_hits$Q.end),
-    end       = pmax(exon_hits$Q.start, exon_hits$Q.end),
-    feat_type = "Exon",
-    stringsAsFactors = FALSE
-  )
-} else {
-  data.frame(seq_id = character(0), start = integer(0), end = integer(0),
-             feat_type = character(0), stringsAsFactors = FALSE)
-}
-
-guide_feats <- if (nrow(guide_hits) > 0) {
-  data.frame(
-    seq_id    = guide_hits$Query,
-    start     = pmin(guide_hits$Q.start, guide_hits$Q.end),
-    end       = pmax(guide_hits$Q.start, guide_hits$Q.end),
-    feat_type = "CRISPR_guide",
-    name      = guide_hits$Subject,
-    stringsAsFactors = FALSE
-  )
-} else {
-  data.frame(seq_id = character(0), start = integer(0), end = integer(0),
-             feat_type = character(0), name = character(0),
-             stringsAsFactors = FALSE)
-}
-
-amp_feats <- if (nrow(amp_hits) > 0) {
-  data.frame(
-    seq_id    = amp_hits$seq_id,
-    start     = pmin(amp_hits$start, amp_hits$end),
-    end       = pmax(amp_hits$start, amp_hits$end),
-    feat_type = "Amplicon",
-    name      = sprintf("%s · %s (%d bp)",
-                        amp_hits$forward_id, amp_hits$reverse_id, amp_hits$size),
-    stringsAsFactors = FALSE
-  )
-} else {
-  data.frame(seq_id = character(0), start = integer(0), end = integer(0),
-             feat_type = character(0), name = character(0),
-             stringsAsFactors = FALSE)
-}
-
-# Primer binding sites at the amplicon edges. Drawn as gggenomes "genes" so
-# each one is an arrow showing its orientation. Forward primer occupies the
-# first fwd_len bp of the amplicon on the strand re-PCR reported; reverse
-# primer occupies the last rev_len bp on the opposite strand.
-primer_genes <- if (nrow(amp_hits) > 0) {
-  do.call(rbind, lapply(seq_len(nrow(amp_hits)), function(i) {
-    a       <- amp_hits[i, ]
-    amp_lo  <- min(a$start, a$end)
-    amp_hi  <- max(a$start, a$end)
-    fwd_seq <- oligo_seq_lookup[[a$forward_id]]
-    rev_seq <- oligo_seq_lookup[[a$reverse_id]]
-    fwd_len <- if (!is.null(fwd_seq)) nchar(fwd_seq) else 20L
-    rev_len <- if (!is.null(rev_seq)) nchar(rev_seq) else 20L
-    if (is.na(a$strand) || a$strand == "+") {
-      data.frame(
-        seq_id = c(a$seq_id, a$seq_id),
-        start  = c(amp_lo,                 amp_hi),
-        end    = c(amp_lo + fwd_len - 1L,  amp_hi - rev_len + 1L),
-        feat_type = c("forward_primer", "reverse_primer"),
-        name      = c(a$forward_id,    a$reverse_id),
-        stringsAsFactors = FALSE
-      )
-    } else {
-      data.frame(
-        seq_id = c(a$seq_id, a$seq_id),
-        start  = c(amp_hi,                 amp_lo),
-        end    = c(amp_hi - fwd_len + 1L,  amp_lo + rev_len - 1L),
-        feat_type = c("forward_primer", "reverse_primer"),
-        name      = c(a$forward_id,    a$reverse_id),
-        stringsAsFactors = FALSE
-      )
-    }
-  }))
-} else {
-  data.frame(seq_id = character(0), start = integer(0), end = integer(0),
-             feat_type = character(0), name = character(0),
-             stringsAsFactors = FALSE)
-}
-
-p <- gggenomes(
-  seqs  = gene_seq,
-  genes = primer_genes,
-  feats = list(exons = exon_feats, guides = guide_feats, amplicons = amp_feats)
-) +
-  geom_seq() +
-  geom_feat(data = feats(exons),
-            aes(y = y - 0.18, yend = y - 0.18, color = feat_type),
-            position = "identity", linewidth = 5, alpha = 0.85) +
-  geom_feat(data = feats(amplicons),
-            aes(y = y + 0.22, yend = y + 0.22, color = feat_type),
-            position = "identity", linewidth = 2.5, alpha = 0.7) +
-  geom_feat(data = feats(guides),
-            aes(color = feat_type), linewidth = 2) +
-  geom_feat_label(data = feats(guides),
-                  aes(label = name),
-                  size = 2.4, nudge_y = 0.05, color = "#D94040") +
-  geom_gene(aes(fill = feat_type), color = NA, size = 6) +
-  geom_gene_label(aes(label = name), size = 2.4, nudge_y = -0.07) +
-  scale_color_manual(
-    name   = NULL,
-    values = c("Exon" = "#DAA520",
-               "CRISPR_guide" = "#D94040",
-               "Amplicon" = "#40A0D0"),
-    labels = c("Exon" = "Exon",
-               "CRISPR_guide" = "CRISPR guide",
-               "Amplicon" = "PCR amplicon")
-  ) +
-  scale_fill_manual(
-    name   = NULL,
-    values = c("forward_primer" = "#40A040",
-               "reverse_primer" = "#9060C0"),
-    labels = c("forward_primer" = "Forward primer",
-               "reverse_primer" = "Reverse primer")
-  ) +
-  labs(title = sprintf("%s (%s)", q$gene_name, q$name)) +
-  theme(legend.position = "bottom",
-        legend.box = "horizontal",
-        legend.margin = margin(0, 0, 0, 0))
-
-if (!is.null(meta$gene_offset) && meta$gene_offset > 0) {
-  gene_start <- meta$gene_offset + 1
-  gene_end   <- meta$gene_offset + meta$gene_length
-  p <- p +
-    geom_vline(xintercept = gene_start, linetype = "dashed",
-               color = "grey40", linewidth = 0.4) +
-    geom_vline(xintercept = gene_end, linetype = "dashed",
-               color = "grey40", linewidth = 0.4)
-}
-
-print(p)
+print(plot_annotation(annotation, q, meta))
 ```

@@ -21,6 +21,7 @@ if (length(missing_pkgs) > 0) {
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 library(gggenomes)
+source("helpers.R")
 ```
 
 ## Inputs
@@ -39,57 +40,6 @@ stopifnot(
   "oligos.fa not found"  = file.exists(oligo_path),
   "gene.gff3 not found"  = file.exists(gff_path)
 )
-```
-
-```{r helpers}
-parse_fasta <- function(fasta_file) {
-  lines <- readLines(fasta_file, warn = FALSE)
-  idx   <- grep("^>", lines)
-  lapply(seq_along(idx), function(i) {
-    start <- idx[i]
-    end   <- if (i < length(idx)) idx[i + 1] - 1 else length(lines)
-    hdr   <- sub("^>", "", lines[start])
-    seq_text <- paste(lines[(start + 1):end], collapse = "")
-    parts <- strsplit(hdr, "\\s+")[[1]]
-    list(
-      header   = hdr,
-      name     = parts[1],
-      sequence = seq_text,
-      length   = nchar(seq_text)
-    )
-  })
-}
-
-parse_oligo_meta <- function(fasta_file) {
-  hdrs <- grep("^>", readLines(fasta_file, warn = FALSE), value = TRUE)
-  do.call(rbind, lapply(hdrs, function(h) {
-    h <- sub("^>", "", h)
-    parts  <- strsplit(h, "\\s+")[[1]]
-    type_f <- sub("^type=", "", grep("^type=", parts, value = TRUE))
-    pair_f <- sub("^pair=", "", grep("^pair=", parts, value = TRUE))
-    data.frame(
-      oligo_id   = parts[1],
-      oligo_type = ifelse(length(type_f) > 0, type_f, NA_character_),
-      pair       = ifelse(length(pair_f) > 0, pair_f, NA_character_),
-      stringsAsFactors = FALSE
-    )
-  }))
-}
-
-read_gene_record <- function(gff_file) {
-  gff <- read.table(gff_file, sep = "\t", quote = "", comment.char = "#",
-                    stringsAsFactors = FALSE, fill = TRUE,
-                    col.names = c("chr", "source", "type", "start", "end",
-                                  "score", "strand", "phase", "attributes"))
-  gene <- gff[gff$type == "gene", ][1, ]
-  stopifnot("No 'gene' record in gene.gff3" = nrow(gene) == 1 && !is.na(gene$chr))
-  list(
-    chromosome = gene$chr,
-    strand     = gene$strand,
-    gene_start = as.integer(gene$start),
-    gene_end   = as.integer(gene$end)
-  )
-}
 ```
 
 ## Gene
