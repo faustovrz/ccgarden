@@ -97,6 +97,111 @@ read_gene_record <- function(gff_file) {
 }
 
 # ---------------------------------------------------------------------
+# Search helpers
+#
+# Each helper runs one BLAST or e-PCR query and returns the hits as a
+# data frame ready for build_annotation_table. The chunk that calls
+# them is one line of work plus a cat() summary.
+
+BLAST_COL_NAMES <- c("Query", "Subject", "Identity", "Aln.Length",
+                     "Mismatches", "Gaps", "Q.start", "Q.end",
+                     "S.start", "S.end", "E.value", "Bit.score",
+                     "Q.len", "S.len")
+
+# Find exons by BLASTing the padded genomic against the gene's cDNA.
+# Returns a data frame with BLAST tabular columns; Q.start/Q.end are the
+# exon's coords on the gene-forward genomic axis.
+search_cdna <- function(genomic_path, cdna_path) {
+  cmd <- sprintf(
+    paste(
+      'blastn -task megablast -query %s -subject %s',
+      '-max_hsps 50',
+      '-outfmt "6 qseqid sseqid pident length mismatch gapopen',
+      'qstart qend sstart send evalue bitscore qlen slen"'
+    ),
+    shQuote(genomic_path), shQuote(cdna_path)
+  )
+  out <- system(cmd, intern = TRUE)
+  if (length(out) == 0) return(data.frame())
+  read.table(text = out, sep = "\t", stringsAsFactors = FALSE,
+             col.names = BLAST_COL_NAMES)
+}
+
+# Place CRISPR guides on the gene with blastn-short. Keeps only
+# near-full-length hits at >= 95% identity.
+search_guides <- function(genomic_path, guides_path) {
+  cmd <- sprintf(
+    paste(
+      'blastn -task blastn-short -query %s -subject %s',
+      '-word_size 7 -evalue 1000 -dust no -soft_masking false',
+      '-ungapped -perc_identity 85 -max_target_seqs 50',
+      '-outfmt "6 qseqid sseqid pident length mismatch gapopen',
+      'qstart qend sstart send evalue bitscore qlen slen"'
+    ),
+    shQuote(genomic_path), shQuote(guides_path)
+  )
+  out <- system(cmd, intern = TRUE)
+  if (length(out) == 0) return(data.frame())
+  hits <- read.table(text = out, sep = "\t", stringsAsFactors = FALSE,
+                     col.names = BLAST_COL_NAMES)
+  hits$strand <- ifelse(hits$S.start <= hits$S.end, "+", "-")
+  hits[hits$Aln.Length >= (hits$S.len - 2) & hits$Identity >= 95, ]
+}
+
+# Search for primer-pair amplicons with e-PCR. Builds the famap+fahash
+# index from the padded genomic, runs `re-PCR -S` against the gene's
+# primer_pairs.sts, and decodes each STS_ID into fwd_id / rev_id plus
+# primer sequence lengths drawn from sts_table.
+search_primer_pairs <- function(genomic_path, sts_path, sts_table, gene_id) {
+  famap_file <- tempfile(fileext = ".famap")
+  hash_file  <- tempfile(fileext = ".hash")
+  system2("famap",  c("-t", "N", "-b", famap_file, genomic_path),
+          stdout = FALSE, stderr = FALSE)
+  system2("fahash", c("-b", hash_file, famap_file),
+          stdout = FALSE, stderr = FALSE)
+  out <- system2("re-PCR", c("-S", hash_file, sts_path),
+                 stdout = TRUE, stderr = FALSE)
+  unlink(c(famap_file, hash_file))
+
+  empty <- data.frame(seq_id = character(0), sts_id = character(0),
+                      strand = character(0), start = integer(0),
+                      end = integer(0), size = integer(0),
+                      fwd_id = character(0), rev_id = character(0),
+                      fwd_len = integer(0), rev_len = integer(0),
+                      stringsAsFactors = FALSE)
+
+  data_lines <- out[!grepl("^#", out) & nzchar(out)]
+  if (length(data_lines) == 0) return(empty)
+  raw <- read.table(text = data_lines, sep = "\t", fill = TRUE,
+                    stringsAsFactors = FALSE)
+
+  decoded   <- lapply(raw$V1, parse_sts_id, gene_short = gene_id)
+  fwd_ids   <- vapply(decoded, function(d) d$fwd_id, character(1))
+  rev_ids   <- vapply(decoded, function(d) d$rev_id, character(1))
+  sts_idx   <- setNames(seq_len(nrow(sts_table)), sts_table$sts_id)
+  fwd_lens  <- vapply(raw$V1, function(id) {
+    i <- sts_idx[[id]]; if (is.null(i)) NA_integer_ else nchar(sts_table$fwd_seq[i])
+  }, integer(1))
+  rev_lens  <- vapply(raw$V1, function(id) {
+    i <- sts_idx[[id]]; if (is.null(i)) NA_integer_ else nchar(sts_table$rev_seq[i])
+  }, integer(1))
+
+  data.frame(
+    seq_id  = raw$V2,
+    sts_id  = raw$V1,
+    strand  = raw$V3,
+    start   = as.integer(raw$V4),
+    end     = as.integer(raw$V5),
+    size    = as.integer(raw$V5) - as.integer(raw$V4) + 1L,
+    fwd_id  = fwd_ids,
+    rev_id  = rev_ids,
+    fwd_len = fwd_lens,
+    rev_len = rev_lens,
+    stringsAsFactors = FALSE
+  )
+}
+
+# ---------------------------------------------------------------------
 # Unified annotation table
 #
 # One row per feature on the gene-forward padded genomic sequence.
@@ -117,7 +222,8 @@ empty_annotation_row <- function() {
              stringsAsFactors = FALSE)
 }
 
-build_annotation_table <- function(q, meta, exon_hits, guide_hits, amp_hits) {
+build_annotation_table <- function(q, meta, exon_hits = NULL,
+                                   guide_hits = NULL, amp_hits = NULL) {
   rows <- list()
 
   # gene (on the gene-forward genomic.fa, the gene runs "+")

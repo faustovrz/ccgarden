@@ -1,28 +1,15 @@
 ## Exons
 
+### Search
+
 ```{r blast-exons}
-exon_cmd <- sprintf(
-  paste(
-    'blastn -task megablast -query %s -subject %s',
-    '-max_hsps 50',
-    '-outfmt "6 qseqid sseqid pident length mismatch gapopen',
-    'qstart qend sstart send evalue bitscore qlen slen"'
-  ),
-  shQuote(genomic_path), shQuote(cdna_path)
-)
-
-col_names <- c("Query", "Subject", "Identity", "Aln.Length",
-               "Mismatches", "Gaps", "Q.start", "Q.end",
-               "S.start", "S.end", "E.value", "Bit.score",
-               "Q.len", "S.len")
-
-exon_out <- system(exon_cmd, intern = TRUE)
-exon_hits <- if (length(exon_out) > 0) {
-  read.table(text = exon_out, sep = "\t", stringsAsFactors = FALSE,
-             col.names = col_names)
-} else {
-  data.frame()
-}
-
+exon_hits <- search_cdna(genomic_path, cdna_path)
 cat(sprintf("Exons found: %d HSPs against the cDNA\n", nrow(exon_hits)))
+```
+
+### Annotation map
+
+```{r plot-exons, fig.width=10, fig.height=2.6}
+annotation_exons <- build_annotation_table(q, meta, exon_hits = exon_hits)
+print(plot_annotation(annotation_exons, q, meta))
 ```
