@@ -10,7 +10,7 @@ params:
   gene: "nmx"
 ---
 
-```{r r-packages, include=FALSE}
+```{r r-packages}
 required_pkgs <- c("gggenomes")
 missing_pkgs  <- setdiff(required_pkgs, rownames(installed.packages()))
 if (length(missing_pkgs) > 0) {
@@ -18,7 +18,7 @@ if (length(missing_pkgs) > 0) {
 }
 ```
 
-```{r setup, include=FALSE}
+```{r setup}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 library(gggenomes)
 source("helpers.R")
@@ -31,14 +31,16 @@ gene_id      <- params$gene
 data_dir     <- file.path("data", gene_id)
 genomic_path <- file.path(data_dir, "genomic.fa")
 cdna_path    <- file.path(data_dir, "cdna.fa")
-oligo_path   <- file.path(data_dir, "oligos.fa")
+guides_path  <- file.path(data_dir, "guides.fa")
+sts_path     <- file.path(data_dir, "primer_pairs.sts")
 gff_path     <- file.path(data_dir, "gene.gff3")
 
 stopifnot(
-  "genomic.fa not found" = file.exists(genomic_path),
-  "cdna.fa not found"    = file.exists(cdna_path),
-  "oligos.fa not found"  = file.exists(oligo_path),
-  "gene.gff3 not found"  = file.exists(gff_path)
+  "genomic.fa not found"        = file.exists(genomic_path),
+  "cdna.fa not found"           = file.exists(cdna_path),
+  "guides.fa not found"         = file.exists(guides_path),
+  "primer_pairs.sts not found"  = file.exists(sts_path),
+  "gene.gff3 not found"         = file.exists(gff_path)
 )
 ```
 
@@ -51,8 +53,9 @@ q <- queries[[1]]
 q$gene_name <- gene_id
 
 cdna_records  <- parse_fasta(cdna_path)
-oligo_records <- parse_fasta(oligo_path)
-oligo_meta    <- parse_oligo_meta(oligo_path)
+guide_records <- parse_fasta(guides_path)
+guide_meta    <- parse_oligo_meta(guides_path)
+sts_table     <- parse_sts_file(sts_path)
 gene_rec      <- read_gene_record(gff_path)
 
 gene_length <- gene_rec$gene_end - gene_rec$gene_start + 1L
@@ -75,11 +78,6 @@ cat(sprintf("Locus ID:      %s\n", q$name))
 cat(sprintf("Padded length: %d bp\n", q$length))
 cat(sprintf("Gene length:   %d bp\n", meta$gene_length))
 cat(sprintf("cDNA records:  %d\n", length(cdna_records)))
-cat(sprintf("Oligos:        %d (guides: %d, fwd primers: %d, rev primers: %d)\n",
-            nrow(oligo_meta),
-            sum(oligo_meta$oligo_type == "CRISPR_guide"),
-            sum(oligo_meta$oligo_type == "forward_primer"),
-            sum(oligo_meta$oligo_type == "reverse_primer")))
-cat(sprintf("Primer pairs:  %d\n",
-            length(unique(na.omit(oligo_meta$pair)))))
+cat(sprintf("Guides:        %d\n", length(guide_records)))
+cat(sprintf("Primer pairs:  %d\n", nrow(sts_table)))
 ```

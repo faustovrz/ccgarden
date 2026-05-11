@@ -29,14 +29,56 @@ parse_oligo_meta <- function(fasta_file) {
     h <- sub("^>", "", h)
     parts  <- strsplit(h, "\\s+")[[1]]
     type_f <- sub("^type=", "", grep("^type=", parts, value = TRUE))
-    pair_f <- sub("^pair=", "", grep("^pair=", parts, value = TRUE))
     data.frame(
       oligo_id   = parts[1],
       oligo_type = ifelse(length(type_f) > 0, type_f, NA_character_),
-      pair       = ifelse(length(pair_f) > 0, pair_f, NA_character_),
       stringsAsFactors = FALSE
     )
   }))
+}
+
+# Read the per-gene primer-pair STS file in NCBI e-PCR native format:
+#   STS_ID  FWD_SEQ  REV_SEQ  SIZE_RANGE
+# Comments (lines starting with #) and blank lines are skipped.
+parse_sts_file <- function(sts_path) {
+  lines <- readLines(sts_path, warn = FALSE)
+  lines <- lines[!grepl("^#", lines) & nzchar(lines)]
+  if (length(lines) == 0) {
+    return(data.frame(sts_id = character(0), fwd_seq = character(0),
+                      rev_seq = character(0), size_range = character(0),
+                      stringsAsFactors = FALSE))
+  }
+  parts <- strsplit(lines, "\t")
+  do.call(rbind, lapply(parts, function(p) {
+    data.frame(sts_id = p[1], fwd_seq = p[2], rev_seq = p[3],
+               size_range = p[4], stringsAsFactors = FALSE)
+  }))
+}
+
+# Parse the structured STS_ID `<cultivar>_<gene>|<fwd_short>:<rev_short>`
+# into its components. fwd_id and rev_id are reconstructed by prefixing
+# the short forms with `gene_short` (e.g. "pg1f1" + "nmx" -> "nmxpg1f1").
+parse_sts_id <- function(sts_id, gene_short) {
+  left_right <- strsplit(sts_id, "\\|", fixed = FALSE)[[1]]
+  prefix     <- left_right[1]
+  pair_part  <- if (length(left_right) > 1) left_right[2] else NA_character_
+
+  cultivar_gene <- strsplit(prefix, "_", fixed = TRUE)[[1]]
+  cultivar      <- cultivar_gene[1]
+
+  pair_shorts <- if (!is.na(pair_part)) strsplit(pair_part, ":", fixed = TRUE)[[1]]
+                  else c(NA_character_, NA_character_)
+  fwd_short <- pair_shorts[1]
+  rev_short <- if (length(pair_shorts) > 1) pair_shorts[2] else NA_character_
+
+  list(
+    cultivar  = cultivar,
+    gene      = gene_short,
+    fwd_short = fwd_short,
+    rev_short = rev_short,
+    fwd_id    = if (!is.na(fwd_short)) paste0(gene_short, fwd_short) else NA_character_,
+    rev_id    = if (!is.na(rev_short)) paste0(gene_short, rev_short) else NA_character_
+  )
 }
 
 read_gene_record <- function(gff_file) {
@@ -75,8 +117,7 @@ empty_annotation_row <- function() {
              stringsAsFactors = FALSE)
 }
 
-build_annotation_table <- function(q, meta, exon_hits, guide_hits, amp_hits,
-                                   oligo_seq_lookup) {
+build_annotation_table <- function(q, meta, exon_hits, guide_hits, amp_hits) {
   rows <- list()
 
   # gene (on the gene-forward genomic.fa, the gene runs "+")
@@ -121,7 +162,8 @@ build_annotation_table <- function(q, meta, exon_hits, guide_hits, amp_hits,
     }
   }
 
-  # Amplicons + derived primer_bind rows
+  # Amplicons + derived primer_bind rows. amp_hits is expected to carry
+  # sts_id, fwd_id, rev_id, fwd_len, rev_len already filled in.
   if (!is.null(amp_hits) && nrow(amp_hits) > 0) {
     for (j in seq_len(nrow(amp_hits))) {
       a <- amp_hits[j, ]
@@ -132,15 +174,13 @@ build_annotation_table <- function(q, meta, exon_hits, guide_hits, amp_hits,
       rows[[length(rows) + 1]] <- data.frame(
         seq_id = a$seq_id, feat_type = "Amplicon",
         start = amp_lo, end = amp_hi, strand = amp_strand,
-        name = sprintf("pair_%s", a$pair),
+        name = a$sts_id,
         note = sprintf("e-PCR predicted product, %d bp", a$size),
         stringsAsFactors = FALSE
       )
 
-      fwd_seq <- oligo_seq_lookup[[a$forward_id]]
-      rev_seq <- oligo_seq_lookup[[a$reverse_id]]
-      fwd_len <- if (!is.null(fwd_seq)) nchar(fwd_seq) else 20L
-      rev_len <- if (!is.null(rev_seq)) nchar(rev_seq) else 20L
+      fwd_len <- if (!is.null(a$fwd_len) && !is.na(a$fwd_len)) a$fwd_len else 20L
+      rev_len <- if (!is.null(a$rev_len) && !is.na(a$rev_len)) a$rev_len else 20L
 
       if (amp_strand == "+") {
         fwd_start <- amp_lo
@@ -161,13 +201,13 @@ build_annotation_table <- function(q, meta, exon_hits, guide_hits, amp_hits,
       rows[[length(rows) + 1]] <- data.frame(
         seq_id = a$seq_id, feat_type = "forward_primer",
         start = fwd_start, end = fwd_end, strand = fwd_str,
-        name = a$forward_id, note = sprintf("pair=%s", a$pair),
+        name = a$fwd_id, note = sprintf("sts=%s", a$sts_id),
         stringsAsFactors = FALSE
       )
       rows[[length(rows) + 1]] <- data.frame(
         seq_id = a$seq_id, feat_type = "reverse_primer",
         start = rev_start, end = rev_end, strand = rev_str,
-        name = a$reverse_id, note = sprintf("pair=%s", a$pair),
+        name = a$rev_id, note = sprintf("sts=%s", a$sts_id),
         stringsAsFactors = FALSE
       )
     }

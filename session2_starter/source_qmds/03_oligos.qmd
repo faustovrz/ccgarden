@@ -9,10 +9,10 @@ guide_cmd <- sprintf(
     '-outfmt "6 qseqid sseqid pident length mismatch gapopen',
     'qstart qend sstart send evalue bitscore qlen slen"'
   ),
-  shQuote(genomic_path), shQuote(oligo_path)
+  shQuote(genomic_path), shQuote(guides_path)
 )
 
-guide_out <- system(guide_cmd, intern = TRUE)
+guide_out  <- system(guide_cmd, intern = TRUE)
 guide_hits <- if (length(guide_out) > 0) {
   read.table(text = guide_out, sep = "\t", stringsAsFactors = FALSE,
              col.names = col_names)
@@ -21,11 +21,8 @@ guide_hits <- if (length(guide_out) > 0) {
 }
 
 if (nrow(guide_hits) > 0) {
-  guide_hits <- merge(guide_hits, oligo_meta,
-                      by.x = "Subject", by.y = "oligo_id", all.x = TRUE)
   guide_hits$strand <- ifelse(guide_hits$S.start <= guide_hits$S.end, "+", "-")
   guide_hits <- guide_hits[
-    guide_hits$oligo_type == "CRISPR_guide" &
     guide_hits$Aln.Length >= (guide_hits$S.len - 2) &
     guide_hits$Identity >= 95, ]
 }
@@ -43,78 +40,58 @@ system2("famap",  c("-t", "N", "-b", famap_file, genomic_path),
 system2("fahash", c("-b", hash_file, famap_file),
         stdout = FALSE, stderr = FALSE)
 
-oligo_seq_lookup <- setNames(
-  vapply(oligo_records, function(x) x$sequence, character(1)),
-  vapply(oligo_records, function(x) x$name,     character(1))
-)
-
-primer_meta <- oligo_meta[oligo_meta$oligo_type %in%
-                          c("forward_primer", "reverse_primer"), ]
-
-pair_ids <- unique(na.omit(primer_meta$pair))
-sts_lines <- character(0)
-pair_rows <- data.frame(
-  pair = character(0), forward_id = character(0), reverse_id = character(0),
-  stringsAsFactors = FALSE
-)
-for (pid in pair_ids) {
-  fwd <- primer_meta[primer_meta$pair == pid &
-                     primer_meta$oligo_type == "forward_primer", ]
-  rev <- primer_meta[primer_meta$pair == pid &
-                     primer_meta$oligo_type == "reverse_primer", ]
-  if (nrow(fwd) != 1 || nrow(rev) != 1) next
-  sts_lines <- c(sts_lines, sprintf("pair_%s\t%s\t%s\t100-10000",
-                                     pid,
-                                     oligo_seq_lookup[[fwd$oligo_id]],
-                                     oligo_seq_lookup[[rev$oligo_id]]))
-  pair_rows <- rbind(pair_rows, data.frame(
-    pair = pid, forward_id = fwd$oligo_id, reverse_id = rev$oligo_id,
-    stringsAsFactors = FALSE
-  ))
-}
-
-amp_hits <- data.frame(
-  seq_id = character(0), pair = character(0), strand = character(0),
-  start = integer(0), end = integer(0), size = integer(0),
-  forward_id = character(0), reverse_id = character(0),
-  stringsAsFactors = FALSE
-)
-
-if (length(sts_lines) > 0) {
-  sts_file <- tempfile(fileext = ".sts")
-  writeLines(sts_lines, sts_file)
-  epcr_out <- system2("re-PCR", c("-S", hash_file, sts_file),
-                      stdout = TRUE, stderr = FALSE)
-  unlink(sts_file)
-
-  data_lines <- epcr_out[!grepl("^#", epcr_out) & nzchar(epcr_out)]
-  if (length(data_lines) > 0) {
-    raw <- read.table(text = data_lines, sep = "\t", fill = TRUE,
-                      stringsAsFactors = FALSE)
-    amp_hits <- data.frame(
-      seq_id = raw$V2,
-      pair   = sub("^pair_", "", raw$V1),
-      strand = raw$V3,
-      start  = as.integer(raw$V4),
-      end    = as.integer(raw$V5),
-      size   = as.integer(raw$V5) - as.integer(raw$V4) + 1L,
-      stringsAsFactors = FALSE
-    )
-    amp_hits <- merge(amp_hits, pair_rows, by = "pair", all.x = TRUE)
-  }
-}
-
+# Run re-PCR against the gene's primer_pairs.sts (e-PCR native format).
+epcr_out <- system2("re-PCR", c("-S", hash_file, sts_path),
+                    stdout = TRUE, stderr = FALSE)
 unlink(c(famap_file, hash_file))
 
+amp_hits <- data.frame(
+  seq_id = character(0), sts_id = character(0), strand = character(0),
+  start = integer(0), end = integer(0), size = integer(0),
+  fwd_id = character(0), rev_id = character(0),
+  fwd_len = integer(0), rev_len = integer(0),
+  stringsAsFactors = FALSE
+)
+
+data_lines <- epcr_out[!grepl("^#", epcr_out) & nzchar(epcr_out)]
+if (length(data_lines) > 0) {
+  raw <- read.table(text = data_lines, sep = "\t", fill = TRUE,
+                    stringsAsFactors = FALSE)
+  # Decompose each STS_ID and look up primer sequence lengths from sts_table
+  decoded <- lapply(raw$V1, parse_sts_id, gene_short = gene_id)
+  fwd_ids <- vapply(decoded, function(d) d$fwd_id, character(1))
+  rev_ids <- vapply(decoded, function(d) d$rev_id, character(1))
+  sts_lookup <- setNames(seq_len(nrow(sts_table)), sts_table$sts_id)
+  fwd_lens <- vapply(raw$V1, function(id) {
+    i <- sts_lookup[[id]]; if (is.null(i)) NA_integer_ else nchar(sts_table$fwd_seq[i])
+  }, integer(1))
+  rev_lens <- vapply(raw$V1, function(id) {
+    i <- sts_lookup[[id]]; if (is.null(i)) NA_integer_ else nchar(sts_table$rev_seq[i])
+  }, integer(1))
+
+  amp_hits <- data.frame(
+    seq_id = raw$V2,
+    sts_id = raw$V1,
+    strand = raw$V3,
+    start  = as.integer(raw$V4),
+    end    = as.integer(raw$V5),
+    size   = as.integer(raw$V5) - as.integer(raw$V4) + 1L,
+    fwd_id = fwd_ids,
+    rev_id = rev_ids,
+    fwd_len = fwd_lens,
+    rev_len = rev_lens,
+    stringsAsFactors = FALSE
+  )
+}
+
 cat(sprintf("Predicted amplicons: %d (from %d pairs in STS)\n",
-            nrow(amp_hits), nrow(pair_rows)))
+            nrow(amp_hits), nrow(sts_table)))
 ```
 
 ## Annotation table
 
 ```{r build-annotation-table}
-annotation <- build_annotation_table(q, meta, exon_hits, guide_hits,
-                                     amp_hits, oligo_seq_lookup)
+annotation <- build_annotation_table(q, meta, exon_hits, guide_hits, amp_hits)
 cat(sprintf("Annotation rows: %d\n", nrow(annotation)))
 knitr::kable(
   with(annotation, data.frame(
