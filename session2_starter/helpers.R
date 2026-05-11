@@ -1,5 +1,5 @@
 # Helpers for the CRISPR target gene annotation pipeline.
-# Sourced from annotation_map.qmd. Kept here so the rendered notebook
+# Sourced from annotate_<gene>.qmd. Kept here so the rendered notebook
 # focuses on the pipeline, not on string formatting or feature plumbing.
 
 # ---------------------------------------------------------------------

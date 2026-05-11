@@ -2,7 +2,7 @@
 
 ## Context
 
-By the end of stage 4, the project renders `annotation_map.qmd` for one
+By the end of stage 4, the project renders `annotate_<gene>.qmd` for one
 gene (`nmx`) using inputs in `data/nmx/` and writes a GenBank file to
 `results/nmx/`. The repo is on GitHub, GitHub Pages serves `docs/` from
 `main`.
@@ -23,16 +23,18 @@ A single bundled warehouse at `data/all/`:
 |--------------|---------------------------------------------------------------------|
 | `genomic.fa` | Multi-FASTA. One padded genomic record per gene. Headers carry `gene=<short>` and `chr=<chr>:<start>-<end>:<strand>` tags. The FASTA ID is the locus_id. |
 | `cdna.fa`    | Multi-FASTA. One cDNA transcript per gene. Headers carry `gene=<short>`. |
-| `oligos.fa`  | Multi-FASTA. All oligos for all genes. Headers carry `gene=<short>`, `type=`, and may carry `pair=`. |
-| `genes.gff3` | GFF3 subset with one `gene` record per target plus its child `exon` and `CDS` records. |
+| `guides.fa`         | Multi-FASTA. CRISPR guides only. Headers carry `gene=<short>` and `type=CRISPR_guide`. |
+| `primer_pairs.sts`  | NCBI e-PCR native format. One line per primer pair, STS_ID encoded as `<cultivar>_<gene>|<fwd_short>:<rev_short>`. |
+| `genes.gff3`        | GFF3 subset with one `gene` record per target plus its child `exon` and `CDS` records. |
 
 The list of genes is the set of `gene=<short>` tags that appears
-consistently across `genomic.fa`, `cdna.fa`, and `oligos.fa`. A gene
-that is missing from any of those three is skipped.
+consistently across `genomic.fa`, `cdna.fa`, and `guides.fa`, plus
+matching STS_ID prefixes in `primer_pairs.sts`. A gene that is missing
+from any of those is skipped.
 
 ## Outputs
 
-- `docs/<gene>/annotation_map.html` per gene
+- `docs/<gene>/annotate_<gene>.html` per gene
 - `docs/index.html` listing every per-gene page, showing the gene short
   name, locus_id, padded length, and a feature count summary
 - `results/<gene>/<locus_id>_<gene>.gbk` per gene
@@ -41,16 +43,16 @@ that is missing from any of those three is skipped.
 
 ## Constraints
 
-- The single-gene `annotation_map.qmd` is the source of truth for the
+- The single-gene `annotate_<gene>.qmd` is the source of truth for the
   pipeline. The many-gene runner must not duplicate its logic. Either:
   - parameterize the qmd via `params: gene` and call
-    `quarto render annotation_map.qmd -P gene:<gene>` in a loop with the
+    `quarto render annotate_<gene>.qmd -P gene:<gene>` in a loop with the
     per-gene folder already populated, or
   - refactor the chunks into a function the loop calls directly.
 - For each gene, the runner produces a `data/<gene>/` folder by
   splitting the relevant records out of `data/all/`. That folder
-  contains `genomic.fa`, `cdna.fa`, `oligos.fa`, and `gene.gff3`, the
-  same layout the single-gene qmd already expects.
+  contains `genomic.fa`, `cdna.fa`, `guides.fa`, `primer_pairs.sts`,
+  and `gene.gff3`, the same layout the single-gene qmd already expects.
 - No regressions on the redaction rules. The published `docs/` tree
   must not contain any FASTA, GenBank, BLAST output, or printed
   nucleotide sequence.
@@ -75,8 +77,8 @@ Suggested prompt for the student to give Claude in the Code tab:
 
 > Read `MANY_GENES_PRD.md` in the project root. Implement the stage 5
 > many-genes runner that meets the spec. The bundled inputs are at
-> `data/all/`. The single-gene pipeline lives in `annotation_map.qmd`.
+> `data/all/`. The single-gene pipeline lives in `annotate_<gene>.qmd`.
 > Do not duplicate its logic; split per gene and call it. When the
-> runner has produced `docs/<gene>/annotation_map.html` for every gene
+> runner has produced `docs/<gene>/annotate_<gene>.html` for every gene
 > present in `data/all/`, commit the new files with a message that
 > names the genes rendered, then push.

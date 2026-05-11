@@ -17,17 +17,17 @@ source_qmds/          # the pipeline, sliced into four cat-able files
 MANY_GENES_PRD.md     # spec for the final many-genes prompt
 ```
 
-There is **no `annotation_map.qmd` in the starter**. You build it by
+There is **no `annotate_nmx.qmd` in the starter**. You build it by
 concatenating the slices, one stage at a time:
 
 ```bash
-cat source_qmds/01_setup.qmd  >  annotation_map.qmd   # stage 1
-cat source_qmds/02_cdna.qmd   >> annotation_map.qmd   # stage 2
-cat source_qmds/03_oligos.qmd >> annotation_map.qmd   # stage 3
-cat source_qmds/04_genbank.qmd >> annotation_map.qmd  # stage 4
+cat source_qmds/01_setup.qmd  >  annotate_nmx.qmd   # stage 1
+cat source_qmds/02_cdna.qmd   >> annotate_nmx.qmd   # stage 2
+cat source_qmds/03_oligos.qmd >> annotate_nmx.qmd   # stage 3
+cat source_qmds/04_genbank.qmd >> annotate_nmx.qmd  # stage 4
 ```
 
-After stage 4, `cat source_qmds/*.qmd > annotation_map.qmd` produces
+After stage 4, `cat source_qmds/*.qmd > annotate_nmx.qmd` produces
 the same final file.
 
 The pipeline expects per-gene inputs under `data/<gene_id>/`. The
@@ -89,7 +89,7 @@ grep -P '(ID|Parent)=<locus_id>($|;|_T|\.exon|\.cds)' \
 
 The gene name is taken from the folder name (`data/<gene_id>/`), so put
 the gene under `data/nmx/`, `data/hpc1/`, etc. The qmd's `params: gene`
-defaults to `nmx`; render with `quarto render R/annotation_map.qmd -P gene:hpc1`
+defaults to `nmx`; render with `quarto render R/annotate_nmx.qmd -P gene:hpc1`
 to switch.
 
 ### Padded genomic sequence

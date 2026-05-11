@@ -137,8 +137,8 @@ browser, download the archive, and extract it inside `~/crisprpen` so
 you end up with:
 
 ```
-data/nmx/{genomic.fa, cdna.fa, oligos.fa, gene.gff3}
-data/all/{genomic.fa, cdna.fa, oligos.fa, genes.gff3}
+data/nmx/{genomic.fa, cdna.fa, guides.fa, primer_pairs.sts, gene.gff3}
+data/all/{genomic.fa, cdna.fa, guides.fa, primer_pairs.sts, genes.gff3}
 ```
 
 `data/nmx/` drives stages 1 to 4. `data/all/` is the warehouse the
@@ -151,7 +151,7 @@ ls data/nmx/
 ls data/all/
 ```
 
-Both should list four files each.
+Both should list five files each.
 
 > **Notes:** Drop the Drive link in chat now, not in the slide deck.
 > Students who hit a permission wall: re-share with their NCSU Google
@@ -163,16 +163,16 @@ Both should list four files each.
 ## 8. Build and render stage 1
 
 The pipeline is delivered as four concatenable slices in `source_qmds/`.
-Build your `annotation_map.qmd` from the first slice:
+Build your `annotate_nmx.qmd` from the first slice:
 
 ```bash
-cat source_qmds/01_setup.qmd > annotation_map.qmd
+cat source_qmds/01_setup.qmd > annotate_nmx.qmd
 ```
 
 Render with **Cmd+Shift+K** (Mac) or **Ctrl+Shift+K** (Windows). The
-output goes to `docs/annotation_map.html`.
+output goes to `docs/annotate_nmx.html`.
 
-Open `docs/annotation_map.html` in a browser. You should see the gene
+Open `docs/annotate_nmx.html` in a browser. You should see the gene
 name, locus ID, length, and a count of exons, guides, and primer pairs.
 
 > **Notes:** This first render is the smoke test. If anything is broken
@@ -189,7 +189,7 @@ You do this one yourself so you see plain git, no agent in the way.
 ```bash
 git init -b main
 git status
-git add annotation_map.qmd source_qmds/ MANY_GENES_PRD.md crisprpen.yml _quarto.yml README.md .gitignore docs/
+git add annotate_nmx.qmd source_qmds/ MANY_GENES_PRD.md crisprpen.yml _quarto.yml README.md .gitignore docs/
 git commit -m "first commit: setup chunk renders for nmx"
 git log --oneline
 ```
@@ -221,7 +221,7 @@ Then enable Pages:
 6. **Settings > Pages**. Source: **Deploy from a branch**. Branch:
    **main**, folder: **/docs**. Save.
 7. Wait 1 to 2 minutes. Your URL appears at the top of the Pages
-   settings: `https://YOU.github.io/crisprpen-workshop/annotation_map.html`.
+   settings: `https://YOU.github.io/crisprpen-workshop/annotate_nmx.html`.
 
 > **Notes:** Pages on a public repo is free. If anyone wants their repo
 > private, they need a Pro account for Pages to serve. Stick to public
@@ -234,7 +234,7 @@ Then enable Pages:
 Append stage 2 to the working qmd and render:
 
 ```bash
-cat source_qmds/02_cdna.qmd >> annotation_map.qmd
+cat source_qmds/02_cdna.qmd >> annotate_nmx.qmd
 ```
 
 Render. The output now reports how many exons BLAST found against the
@@ -243,7 +243,7 @@ cDNA.
 In the Claude terminal:
 
 ```
-I just appended source_qmds/02_cdna.qmd to annotation_map.qmd and
+I just appended source_qmds/02_cdna.qmd to annotate_nmx.qmd and
 re-rendered. Commit with a clear message that describes what changed,
 then push.
 ```
@@ -263,7 +263,7 @@ minute. The new exon counts are live.
 Append stage 3 and render:
 
 ```bash
-cat source_qmds/03_oligos.qmd >> annotation_map.qmd
+cat source_qmds/03_oligos.qmd >> annotate_nmx.qmd
 ```
 
 Render. The annotation map appears for the first time: gene line,
@@ -288,7 +288,7 @@ Approve. Refresh your Pages URL.
 Append stage 4 and render:
 
 ```bash
-cat source_qmds/04_genbank.qmd >> annotation_map.qmd
+cat source_qmds/04_genbank.qmd >> annotate_nmx.qmd
 ```
 
 Render.
@@ -320,7 +320,7 @@ Hand Claude the spec:
 
 ```
 Read MANY_GENES_PRD.md in the project root. Implement what it asks.
-The single-gene pipeline is in annotation_map.qmd. Do not duplicate
+The single-gene pipeline is in annotate_nmx.qmd. Do not duplicate
 its logic. When the runner works for the gene IDs in data/genes.txt,
 commit and push.
 ```
