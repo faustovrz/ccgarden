@@ -18,6 +18,9 @@ iris_anova_boxplot.png
 # Claude Code local-only settings
 .claude/settings.local.json
 
+# Agent scratch (caches and temp files for in-session tool runs)
+agent/
+
 # Personal planning scaffolding (dated YYYYMMDD_*.md files) — not part of the
 # public tutorial. Keep teaching content in non-dated filenames.
 20[0-9][0-9][0-9][0-9][0-9][0-9]_*.md

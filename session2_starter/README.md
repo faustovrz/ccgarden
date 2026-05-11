@@ -6,9 +6,10 @@ into your own working directory and follow the slides.
 ## Layout
 
 ```
+_quarto.yml           # quarto project config (output goes to docs/)
 crisprpen.yml         # conda env: blast + e-pcr
 .gitignore            # keeps env/, data/, results/ out of your repo
-R/annotation_map.qmd  # the qmd you render
+annotation_map.qmd    # the qmd you render
 source_qmds/          # paste sources for stages 2 to 4
   02_cdna.qmd
   03_oligos.qmd

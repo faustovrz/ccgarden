@@ -6,7 +6,6 @@ format:
     toc: true
     toc-depth: 3
     embed-resources: true
-output-dir: ../docs
 params:
   gene: "nmx"
 ---
@@ -28,7 +27,7 @@ library(gggenomes)
 
 ```{r paths}
 gene_id      <- params$gene
-data_dir     <- file.path("..", "data", gene_id)
+data_dir     <- file.path("data", gene_id)
 genomic_path <- file.path(data_dir, "genomic.fa")
 cdna_path    <- file.path(data_dir, "cdna.fa")
 oligo_path   <- file.path(data_dir, "oligos.fa")

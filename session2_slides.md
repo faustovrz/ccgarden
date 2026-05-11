@@ -130,29 +130,39 @@ right.
 
 ---
 
-## 7. First prompt, Claude downloads the gene data
+## 7. Get the gene data
 
-Prompt Claude:
+I will share a private Drive link in the channel. Open it in your
+browser, download the archive, and extract it inside `~/crisprpen` so
+you end up with:
 
 ```
-Download the nmx gene data from this Drive folder into data/nmx/:
-<paste the link>
-
-Confirm afterwards that genomic.fa, cdna.fa, oligos.fa, and meta.yml
-are present.
+data/nmx/{genomic.fa, cdna.fa, oligos.fa, gene.gff3}
+data/all/{genomic.fa, cdna.fa, oligos.fa, genes.gff3}
 ```
 
-Approve the network request. Wait for Claude to confirm the four files.
+`data/nmx/` drives stages 1 to 4. `data/all/` is the warehouse the
+stage 5 prompt will use.
 
-> **Notes:** Drive direct-download links can require auth. Use a "anyone
-> with the link" share. If Claude gets a permission wall, fall back to a
-> manual browser download and tell Claude where the files landed.
+Quick verify:
+
+```bash
+ls data/nmx/
+ls data/all/
+```
+
+Both should list four files each.
+
+> **Notes:** Drop the Drive link in chat now, not in the slide deck.
+> Students who hit a permission wall: re-share with their NCSU Google
+> account explicitly. The data folder is gitignored so nothing they
+> download leaks to GitHub.
 
 ---
 
 ## 8. Render stage 1, see the gene
 
-Open `R/annotation_map.qmd`. The setup chunk is already there; it loads
+Open `annotation_map.qmd`. The setup chunk is already there; it loads
 the gene and prints its name and length.
 
 Render with **Cmd+Shift+K** (Mac) or **Ctrl+Shift+K** (Windows). The
@@ -173,7 +183,7 @@ You do this one yourself so you see plain git, no agent in the way.
 ```bash
 git init -b main
 git status
-git add R/ source_qmds/ MANY_GENES_PRD.md crisprpen.yml .gitignore docs/
+git add annotation_map.qmd source_qmds/ MANY_GENES_PRD.md crisprpen.yml _quarto.yml README.md .gitignore docs/
 git commit -m "first commit: setup chunk renders for nmx"
 git log --oneline
 ```
@@ -216,7 +226,7 @@ Then enable Pages:
 ## 11. Stage 2, cDNA annotation, Claude commits
 
 Open `source_qmds/02_cdna.qmd` in a second editor tab. Copy the two
-chunks shown there into `R/annotation_map.qmd` after the `## Gene`
+chunks shown there into `annotation_map.qmd` after the `## Gene`
 section. Render.
 
 The map now shows the gene line with exon ribbon.
@@ -224,7 +234,7 @@ The map now shows the gene line with exon ribbon.
 In the Claude terminal:
 
 ```
-I just added the cDNA exon annotation chunks to R/annotation_map.qmd
+I just added the cDNA exon annotation chunks to annotation_map.qmd
 and re-rendered. Commit with a clear message that describes what
 changed, then push.
 ```
@@ -292,7 +302,7 @@ Hand Claude the spec:
 
 ```
 Read MANY_GENES_PRD.md in the project root. Implement what it asks.
-The single-gene pipeline is in R/annotation_map.qmd. Do not duplicate
+The single-gene pipeline is in annotation_map.qmd. Do not duplicate
 its logic. When the runner works for the gene IDs in data/genes.txt,
 commit and push.
 ```

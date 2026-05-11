@@ -1,7 +1,7 @@
 # Stage 4: GenBank export
 
 Paste the section below into `R/annotation_map.qmd` after the annotation map.
-The output `.gbk` file goes to `../results/`, which is gitignored, so the
+The output `.gbk` file goes to `results/`, which is gitignored, so the
 nucleotide content is never published. Only the rendered HTML in `docs/`
 goes to GitHub Pages.
 
@@ -69,7 +69,7 @@ write_genbank <- function(filepath, gene_name, locus_id, sequence, features,
 ```
 
 ```{r genbank-write}
-results_dir <- file.path("..", "results", gene_id)
+results_dir <- file.path("results", gene_id)
 dir.create(results_dir, recursive = TRUE, showWarnings = FALSE)
 
 features <- list()
