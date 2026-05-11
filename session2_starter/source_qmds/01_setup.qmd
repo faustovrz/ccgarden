@@ -10,6 +10,17 @@ params:
   gene: "nmx"
 ---
 
+This notebook annotates one CRISPR target gene by walking through three
+sequence searches and producing two artifacts: an interactive annotation
+map you can drop into a lab report, and a GenBank flat file you can open
+in SnapGene or Benchling to design or check edits.
+
+We work on the **padded genomic sequence** of the gene (the gene plus
+500 bp of flanking sequence on each side, reverse-complemented if the
+gene is on the minus strand). All coordinates in this notebook are
+1-based offsets within that padded sequence, not the original chromosome
+coordinates.
+
 ```{r r-packages}
 required_pkgs <- c("gggenomes")
 missing_pkgs  <- setdiff(required_pkgs, rownames(installed.packages()))
@@ -24,7 +35,27 @@ library(gggenomes)
 source("helpers.R")
 ```
 
+The two chunks above install the one CRAN package the notebook needs
+(`gggenomes`, used for the annotation plot) and pull every reusable
+function out of `helpers.R`. The helpers contain the FASTA and GFF
+parsing, the BLAST and e-PCR wrappers, the annotation table builder,
+the plotter, and the GenBank writer.
+
 ## Inputs
+
+Per-gene inputs live under `data/<gene_id>/`. Five files are required:
+
+- `genomic.fa`  the padded genomic sequence, one FASTA record.
+- `cdna.fa`     the cDNA transcript(s) for this gene.
+- `guides.fa`   the sgRNA oligos as FASTA, with `type=CRISPR_guide` in
+                each header.
+- `primer_pairs.sts`  one line per primer pair in NCBI e-PCR's native
+                format (`STS_ID FWD_SEQ REV_SEQ SIZE_RANGE`). The
+                STS_ID encodes the cultivar, gene, and both primer
+                member names so it carries through to the annotation
+                table and the GenBank `/label=` qualifier.
+- `gene.gff3`   a subset of the genome's GFF3 containing this gene's
+                `gene`, `exon`, and `CDS` records.
 
 ```{r paths}
 gene_id      <- params$gene
@@ -45,6 +76,12 @@ stopifnot(
 ```
 
 ## Gene
+
+The `load-gene` chunk reads every input file and derives the metadata
+the rest of the notebook needs. The `meta` list captures the gene's
+chromosome and strand from the GFF3, the gene length, and the offset of
+the gene's first base inside the padded genomic sequence (the plot uses
+these to draw dashed lines at the gene boundaries).
 
 ```{r load-gene}
 queries <- parse_fasta(genomic_path)
@@ -81,3 +118,10 @@ cat(sprintf("cDNA records:  %d\n", length(cdna_records)))
 cat(sprintf("Guides:        %d\n", length(guide_records)))
 cat(sprintf("Primer pairs:  %d\n", nrow(sts_table)))
 ```
+
+Use those counts as your first sanity check before going further. If
+the gene length plus 1000 (twice the default flank) does not equal the
+padded length, the genomic sequence was clipped at a chromosome edge
+and the dashed gene boundaries in later plots will sit closer to the
+edges of the figure than the symmetric default.
+

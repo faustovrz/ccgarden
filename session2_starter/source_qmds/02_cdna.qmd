@@ -1,6 +1,16 @@
 ## Exons
 
+The genomic sequence we work with includes introns. To draw exons on
+the annotation map and to label them in the GenBank file, we ask BLAST
+where the cDNA aligns inside the genomic. Each high-scoring pair (HSP)
+is one exon.
+
 ### Search
+
+`search_cdna()` runs `blastn -task megablast` with the padded genomic
+as the query and the cDNA as the subject. The HSP `Q.start` and `Q.end`
+columns of the returned data frame are the exon's start and end in the
+padded genomic's coordinate system.
 
 ```{r blast-exons}
 exon_hits <- search_cdna(genomic_path, cdna_path)
@@ -9,7 +19,13 @@ cat(sprintf("Exons found: %d HSPs against the cDNA\n", nrow(exon_hits)))
 
 ### Annotation map
 
+This first plot shows the gene line with the exons drawn as a gold
+ribbon below it, plus dashed grey lines at the gene boundaries inside
+the padded sequence. It is the same plotting code we will use later
+with guides and primers added; right now only exons are populated.
+
 ```{r plot-exons, fig.width=10, fig.height=2.6}
 annotation_exons <- build_annotation_table(q, meta, exon_hits = exon_hits)
 print(plot_annotation(annotation_exons, q, meta))
 ```
+
