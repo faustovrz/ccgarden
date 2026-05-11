@@ -56,6 +56,15 @@ Add this chunk after the guide chunk:
 
 ````markdown
 ```{r epcr-primers}
+# Build the hash that re-PCR queries against. famap turns the FASTA into a
+# memory-mapped binary; fahash builds the lookup table on top of it.
+famap_file <- tempfile(fileext = ".famap")
+hash_file  <- tempfile(fileext = ".hash")
+system2("famap",  c("-t", "N", "-b", famap_file, genomic_path),
+        stdout = FALSE, stderr = FALSE)
+system2("fahash", c("-b", hash_file, famap_file),
+        stdout = FALSE, stderr = FALSE)
+
 # Build STS file for re-PCR: one line per primer pair.
 oligo_seq_lookup <- setNames(
   vapply(oligo_records, function(x) x$sequence, character(1)),
@@ -77,7 +86,7 @@ for (pid in pair_ids) {
   rev <- primer_meta[primer_meta$pair == pid &
                      primer_meta$oligo_type == "reverse_primer", ]
   if (nrow(fwd) != 1 || nrow(rev) != 1) next
-  sts_lines <- c(sts_lines, sprintf("pair_%s\t%s\t%s\t100-2000",
+  sts_lines <- c(sts_lines, sprintf("pair_%s\t%s\t%s\t100-10000",
                                      pid,
                                      oligo_seq_lookup[[fwd$oligo_id]],
                                      oligo_seq_lookup[[rev$oligo_id]]))
@@ -98,19 +107,19 @@ if (length(sts_lines) > 0) {
   sts_file <- tempfile(fileext = ".sts")
   writeLines(sts_lines, sts_file)
 
-  epcr_out <- system(sprintf("re-PCR -s %s %s 2>/dev/null",
-                             shQuote(sts_file), shQuote(genomic_path)),
-                     intern = TRUE)
+  # re-PCR -S takes hash_file then sts_file. Output columns:
+  #   sts_name  seq_id  strand  from  to  mism  gaps  act/exp_len
+  epcr_out <- system2("re-PCR", c("-S", hash_file, sts_file),
+                      stdout = TRUE, stderr = FALSE)
   unlink(sts_file)
 
-  # Skip header / comment lines that re-PCR may emit, parse the rest.
   data_lines <- epcr_out[!grepl("^#", epcr_out) & nzchar(epcr_out)]
   if (length(data_lines) > 0) {
     raw <- read.table(text = data_lines, sep = "\t", fill = TRUE,
                       stringsAsFactors = FALSE)
     amp_hits <- data.frame(
-      seq_id = raw$V1,
-      pair   = sub("^pair_", "", raw$V2),
+      seq_id = raw$V2,
+      pair   = sub("^pair_", "", raw$V1),
       strand = raw$V3,
       start  = as.integer(raw$V4),
       end    = as.integer(raw$V5),
@@ -120,6 +129,8 @@ if (length(sts_lines) > 0) {
     amp_hits <- merge(amp_hits, pair_rows, by = "pair", all.x = TRUE)
   }
 }
+
+unlink(c(famap_file, hash_file))
 
 cat(sprintf("Predicted amplicons: %d (from %d pairs in STS)\n",
             nrow(amp_hits), nrow(pair_rows)))
