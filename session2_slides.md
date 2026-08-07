@@ -102,6 +102,11 @@ You set these in Session 1 — but that was the **local** Positron. Today you ar
   editor, not only in the Console. Settings → search **Inline Output** → enable
   **Positron › Quarto › Inline Output**. Verify: open a `.qmd`, put the cursor in a
   chunk, press **Ctrl+Shift+Enter**, and the output should appear under the chunk.
+- **Claude Code opens in the terminal** — the button at the top-right of an editor
+  (the Claude Code extension) should open the **terminal CLI**, not the graphical chat
+  panel — the whole session runs through the terminal with per-action approval.
+  Settings → **Extensions → Claude Code → check "Use Terminal"** (key
+  `claudeCode.useTerminal: true`).
 - **Claude Code terminal newline** — so **Shift+Enter** inserts a newline in Claude
   Code prompts instead of submitting. In Claude Code, run **`/terminal-setup`** once
   (it writes the keybinding for VS Code–family editors; Positron is a VS Code fork, so
