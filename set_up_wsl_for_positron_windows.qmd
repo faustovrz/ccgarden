@@ -63,8 +63,8 @@ In your Ubuntu terminal, create or navigate to a working folder. Keep it
 **under your Linux home directory**, not under `/mnt/c/`:
 
 ```bash
-mkdir -p ~/projects/test
-cd ~/projects/test
+mkdir -p ~/iris-test
+cd ~/iris-test
 ```
 
 Then either:
@@ -80,7 +80,7 @@ Then either:
 When Positron is connected to WSL, the bottom-left status bar shows the
 WSL distro name (e.g., `WSL: Ubuntu`). The integrated terminal opens a
 Linux shell, and `pwd` returns a Linux path like
-`/home/<username>/projects/test`.
+`/home/<username>/iris-test`.
 
 ### 5. Close the connection when you are done
 

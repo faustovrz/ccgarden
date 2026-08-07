@@ -130,9 +130,8 @@ Use your UnityID email when possible.
 Open the terminal in Positron and run:
 
 ```bash
-mkdir ~/Desktop/iris-test
-ls ~/Desktop
-cd ~/Desktop/iris-test
+mkdir -p ~/iris-test
+cd ~/iris-test
 touch iris_anova.R
 ls
 ```
@@ -143,9 +142,10 @@ Open `iris_anova.R`, paste the contents from the
 [iris-test](https://github.com/faustovrz/iris-test/blob/main/iris_anova.R) repo,
 and step through it with **Cmd+Enter** / **Ctrl+Enter**.
 
-> **Notes:** This confirms Git Bash is working. The `iris-test` folder
-> becomes their working directory for Session 2 as well. On Mac the
-> commands are identical since zsh uses the same syntax.
+> **Notes:** This confirms Git Bash is working. The `iris-test` folder is
+> just for Session 1 — Session 2 uses its own `~/primercrisp` project
+> (created by the bootstrap). On Mac the commands are identical since zsh
+> uses the same syntax.
 
 ---
 
