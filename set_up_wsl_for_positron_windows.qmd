@@ -11,10 +11,9 @@ This tutorial walks Windows users through installing WSL and connecting
 Positron to it, so you can edit and run code as if you were on a Linux
 laptop while keeping Windows underneath.
 
-It is adapted from a VS Code WSL walkthrough
-(<https://www.youtube.com/watch?v=q74CP4fB7cY>). Positron is built on the
-same code as VS Code, so the flow is nearly identical, with one change:
-the extension is **Open Remote - WSL**, not Microsoft's "Remote - WSL".
+Positron is built on the same code base as VS Code, so the remote workflow
+will feel familiar. Positron connects to WSL **natively through its Remote
+Explorer** — you do not need to install any extension.
 
 ## Why bother with WSL
 
@@ -48,13 +47,15 @@ After the restart, an Ubuntu terminal window opens the first time. Pick
 a username and password for the Linux side. These are independent from
 your Windows account.
 
-### 2. Install the Open Remote - WSL extension in Positron
+### 2. Open the Remote Explorer in Positron
+
+No extension is required — WSL support is built in.
 
 1. Open Positron.
-2. Go to the Extensions view (icon in the Activity Bar on the left, or
-   `Ctrl+Shift+X`).
-3. Search for **`Open Remote - WSL`**.
-4. Click **Install**.
+2. Open the **Remote Explorer** view (icon in the Activity Bar on the left,
+   or `Ctrl+Shift+P` and run **Remote Explorer: Focus on WSL Targets View**).
+3. Switch the target type to **WSL Targets**. Your Ubuntu distro appears in
+   the list once WSL is installed (Step 1).
 
 ### 3. Open a folder from inside WSL
 
@@ -70,9 +71,9 @@ Then either:
 
 * Type `positron .` to open the current folder in Positron (if the
   `positron` CLI is available on your PATH inside WSL), or
-* Open Positron, click the green Remote button in the bottom-left
-  corner, pick **Connect to WSL**, and use **File > Open Folder** to
-  navigate to the same path.
+* In the **Remote Explorer** (Step 2), select your Ubuntu distro and
+  choose **Connect in New Window** (or the folder icon to open a specific
+  path), then use **File > Open Folder** to navigate to the same path.
 
 ### 4. Confirm the connection
 
@@ -101,14 +102,14 @@ to `\\wsl$\Ubuntu\home\<you>\` from the File Explorer address bar.
 1. **`wsl --install` says "the requested operation requires elevation"**:
    rerun PowerShell as administrator.
 
-2. **Open Remote - WSL extension is missing from the marketplace**:
-   Positron uses the Open VSX registry by default. The "Open Remote -
-   WSL" extension is published there. If the search returns nothing,
-   confirm your extension marketplace is enabled in Positron settings.
+2. **No WSL target appears in the Remote Explorer**: confirm WSL is
+   installed and running. In PowerShell, `wsl -l -v` should list Ubuntu
+   with `VERSION 2`. If it does not, finish Step 1 (including the
+   restart) first.
 
-3. **Bottom-left button does not show "Connect to WSL"**: confirm the
-   extension finished installing, then reload the Positron window
-   (`Ctrl+Shift+P` > "Developer: Reload Window").
+3. **Remote Explorer does not offer "Connect"**: reload the Positron
+   window (`Ctrl+Shift+P` > "Developer: Reload Window") after WSL is
+   installed, then reopen the Remote Explorer.
 
 4. **Files in `/mnt/c/...` are extremely slow**: move the project under
    `~/` inside WSL. This is the most common WSL performance complaint
@@ -116,21 +117,16 @@ to `\\wsl$\Ubuntu\home\<you>\` from the File Explorer address bar.
 
 ## References
 
-- VS Code WSL walkthrough (the source for these steps):
-  <https://www.youtube.com/watch?v=q74CP4fB7cY>
 - Microsoft WSL documentation:
   <https://learn.microsoft.com/en-us/windows/wsl/>
-- Open Remote - WSL extension on Open VSX:
-  <https://open-vsx.org/extension/jeanp413/open-remote-wsl>
 
 ## TODO: things in this guide that are best-effort and worth verifying
 
 - **`positron` CLI inside WSL.** Listed as one of two ways to open a
-  folder, with the GUI fallback as the safe default. Worth confirming
+  folder, with the Remote Explorer as the safe default. Worth confirming
   it is on PATH after a default Positron install on Windows.
-- **Open VSX availability of `Open Remote - WSL`.** The link
-  <https://open-vsx.org/extension/jeanp413/open-remote-wsl> matches
-  what we have been calling the extension, but the page has not been
-  opened from this session. Worth a click before shipping.
+- **Native Remote Explorer WSL flow.** Confirm the exact menu labels
+  ("WSL Targets", "Connect in New Window") against the installed
+  Positron version — wording can drift between releases.
 - **Status bar label "WSL: Ubuntu".** Could be slightly different per
-  distro or extension version.
+  distro or Positron version.
