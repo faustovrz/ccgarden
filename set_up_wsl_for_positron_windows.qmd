@@ -125,8 +125,5 @@ to `\\wsl$\Ubuntu\home\<you>\` from the File Explorer address bar.
 - **`positron` CLI inside WSL.** Listed as one of two ways to open a
   folder, with the Remote Explorer as the safe default. Worth confirming
   it is on PATH after a default Positron install on Windows.
-- **Native Remote Explorer WSL flow.** Confirm the exact menu labels
-  ("WSL Targets", "Connect in New Window") against the installed
-  Positron version — wording can drift between releases.
 - **Status bar label "WSL: Ubuntu".** Could be slightly different per
   distro or Positron version.
