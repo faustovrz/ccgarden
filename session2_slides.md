@@ -161,7 +161,9 @@ time** — cursor in a chunk, **Ctrl+Shift+Enter** — and read each result **in
 before moving on (this is why you enabled inline output in §5). The `.Rprofile` puts
 the tools (`samtools`, `e-PCR`, …) on `PATH` for the editor's R session.
 
-When section 1 runs top to bottom, render the HTML for the published site:
+When section 1 runs top to bottom, render the HTML for the published site. Run this
+in **Positron's integrated terminal** (Terminal menu, or `` Ctrl+` ``) — Positron
+bundles `quarto`, so it is on `PATH` there; a plain external terminal is not:
 
 ```bash
 conda activate primercrisp
@@ -170,6 +172,9 @@ quarto render primer_check.qmd     # output → docs/primer_check.html
 
 Open `docs/primer_check.html`. You should see the e-PCR amplicon table, the likely
 (0-gap) products, and the guide's genome-wide candidate sites.
+
+> **Notes:** All the later `quarto render` steps are the same — always Positron's
+> integrated terminal, where `quarto` resolves. (Or just use the **Preview** button.)
 
 > **Notes:** Running the chunks one by one is the smoke test — a wrong input or env
 > surfaces on that chunk, not three sections later. The render at the end is the
