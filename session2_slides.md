@@ -79,7 +79,7 @@ blastn -version
 e-PCR 2>&1 | head -1        # usage banner = success (no --version)
 bedtools --version
 primer3_core --version
-Rscript -e 'library(gggenomes); library(pwalign); cat("R OK\n")'
+Rscript -e 'library(gggenomes); library(pwalign); loadNamespace("rmarkdown"); loadNamespace("knitr"); cat("R OK\n")'
 ls data/ref data/blastdb data/primers.xlsx
 ```
 
@@ -92,7 +92,28 @@ the BLAST database, and the primer spreadsheet. If yours fails, raise your hand 
 
 ---
 
-## 5. Make it your repo: `git init` and the `.gitignore`
+## 5. One-time IDE settings (set them in the WSL window)
+
+You set these in Session 1 — but that was the **local** Positron. Today you are in a
+**WSL-connected** window (title bar shows `WSL: Ubuntu`), so confirm each one is active
+*here* by opening Settings from this window.
+
+- **Inline chunk output** — so a chunk's result appears **beneath the chunk** in the
+  editor, not only in the Console. Settings → search **Inline Output** → enable
+  **Positron › Quarto › Inline Output**. Verify: open a `.qmd`, put the cursor in a
+  chunk, press **Ctrl+Shift+Enter**, and the output should appear under the chunk.
+- **Claude Code terminal newline** — so **Shift+Enter** inserts a newline in Claude
+  Code prompts instead of submitting. In Claude Code, run **`/terminal-setup`** once;
+  it installs the keybinding for this Positron install.
+- **Dark theme (optional)** — Settings (gear) → **Color Theme** → **Positron Dark**.
+
+> **Notes:** The WSL gotcha: a setting flipped in the *local* window does not always
+> carry into the *remote* window. If inline output "worked last week" but not today,
+> it is almost always this — re-enable it in the WSL window before anyone runs a chunk.
+
+---
+
+## 6. Make it your repo: `git init` and the `.gitignore`
 
 The bootstrap detached the project from my repo. You now turn it into *your own*.
 Do this one yourself so you see plain git, no agent in the way.
@@ -117,7 +138,7 @@ git status                   # data/ and results/ should NOT appear
 
 ---
 
-## 6. Build and render section 1
+## 7. Build and render section 1
 
 Assemble the notebook from the first two slices (setup + §1):
 
@@ -142,7 +163,7 @@ Open `docs/primer_check.html`. You should see the e-PCR amplicon table, the like
 
 ---
 
-## 7. First commit, by hand
+## 8. First commit, by hand
 
 You do this one yourself so you see plain git.
 
@@ -161,7 +182,7 @@ Note what is **not** in the commit: `data/ref/`, `data/blastdb/`, `results/`. Th
 
 ---
 
-## 8. Create your GitHub repo with `gh`
+## 9. Create your GitHub repo with `gh`
 
 No fork, no web UI — one command turns your local repo into a GitHub repo and pushes:
 
@@ -182,7 +203,7 @@ enable Pages:
 
 ---
 
-## 9. Section 2 (gene overlap), Claude commits
+## 10. Section 2 (gene overlap), Claude commits
 
 From here, Claude writes the commits. Append §2 and render:
 
@@ -213,7 +234,7 @@ Approve each action. Watch it `git add`, write a message from the diff, `git com
 
 ---
 
-## 10. Section 3 (the maps), Claude commits
+## 11. Section 3 (the maps), Claude commits
 
 ```bash
 cat source_qmds/04_maps.qmd >> primer_check.qmd
@@ -233,7 +254,7 @@ I added the gggenomes annotation maps section. Commit and push.
 
 ---
 
-## 11. Section 4 (Primer3 redesign), Claude commits
+## 12. Section 4 (Primer3 redesign), Claude commits
 
 ```bash
 cat source_qmds/05_primer3.qmd >> primer_check.qmd
@@ -259,7 +280,7 @@ control and published.
 
 ---
 
-## 12. Recap and where to go
+## 13. Recap and where to go
 
 You can now:
 
