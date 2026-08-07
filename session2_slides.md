@@ -103,8 +103,11 @@ You set these in Session 1 — but that was the **local** Positron. Today you ar
   **Positron › Quarto › Inline Output**. Verify: open a `.qmd`, put the cursor in a
   chunk, press **Ctrl+Shift+Enter**, and the output should appear under the chunk.
 - **Claude Code terminal newline** — so **Shift+Enter** inserts a newline in Claude
-  Code prompts instead of submitting. In Claude Code, run **`/terminal-setup`** once;
-  it installs the keybinding for this Positron install.
+  Code prompts instead of submitting. In Claude Code, run **`/terminal-setup`** once
+  (it writes the keybinding for VS Code–family editors; Positron is a VS Code fork, so
+  it should apply — the docs do not name Positron explicitly). If Shift+Enter still
+  submits, use the always-works fallbacks: **Ctrl+J**, or type **`\`** then **Enter**.
+  Run it in the host terminal, not inside `tmux`/`screen`.
 - **Dark theme (optional)** — Settings (gear) → **Color Theme** → **Positron Dark**.
 
 > **Notes:** The WSL gotcha: a setting flipped in the *local* window does not always
@@ -138,16 +141,22 @@ git status                   # data/ and results/ should NOT appear
 
 ---
 
-## 7. Build and render section 1
+## 7. Build section 1 (create the notebook, run the chunks)
 
-Assemble the notebook from the first two slices (setup + §1):
+Create the notebook once, then build it up by pasting slices and running each chunk,
+so you see what every step produces:
 
 ```bash
-cat source_qmds/01_setup.qmd  >  primer_check.qmd
-cat source_qmds/02_epcr.qmd   >> primer_check.qmd
+touch primer_check.qmd     # create the empty notebook
 ```
 
-Render **with the env active** so the notebook finds `samtools`, `e-PCR`, etc.:
+Open `primer_check.qmd` in Positron. Copy the contents of `source_qmds/01_setup.qmd`,
+then `source_qmds/02_epcr.qmd`, into it (in that order). Run the code chunks **one at a
+time** — cursor in a chunk, **Ctrl+Shift+Enter** — and read each result **inline**
+before moving on (this is why you enabled inline output in §5). The `.Rprofile` puts
+the tools (`samtools`, `e-PCR`, …) on `PATH` for the editor's R session.
+
+When section 1 runs top to bottom, render the HTML for the published site:
 
 ```bash
 conda activate primercrisp
@@ -157,9 +166,9 @@ quarto render primer_check.qmd     # output → docs/primer_check.html
 Open `docs/primer_check.html`. You should see the e-PCR amplicon table, the likely
 (0-gap) products, and the guide's genome-wide candidate sites.
 
-> **Notes:** This first render is the smoke test — if an input or the env is wrong,
-> it surfaces here, not three sections later. `cat >` overwrites; later sections use
-> `cat >>` to append.
+> **Notes:** Running the chunks one by one is the smoke test — a wrong input or env
+> surfaces on that chunk, not three sections later. The render at the end is the
+> artifact for GitHub Pages.
 
 ---
 
@@ -205,10 +214,11 @@ enable Pages:
 
 ## 10. Section 2 (gene overlap), Claude commits
 
-From here, Claude writes the commits. Append §2 and render:
+From here, Claude writes the commits. Paste the next slice and run it: copy
+`source_qmds/03_overlap.qmd` into `primer_check.qmd`, run its new chunks one at a time
+(**Ctrl+Shift+Enter**, reading each result inline), then render:
 
 ```bash
-cat source_qmds/03_overlap.qmd >> primer_check.qmd
 conda activate primercrisp && quarto render primer_check.qmd
 ```
 
@@ -221,23 +231,25 @@ claude
 Then tell it:
 
 ```
-I appended source_qmds/03_overlap.qmd (the gene-annotation overlap section) to
-primer_check.qmd and re-rendered. Commit with a clear message describing what
-changed, then push.
+I added the gene-annotation overlap section (source_qmds/03_overlap.qmd) to
+primer_check.qmd, ran the chunks, and re-rendered. Commit with a clear message
+describing what changed, then push.
 ```
 
 Approve each action. Watch it `git add`, write a message from the diff, `git commit`,
 `git push`. Refresh your Pages URL after a minute.
 
-> **Notes:** You append the slice with `cat`; Claude writes the commit message and
-> runs git. That separation is the point. Read each sandbox prompt before approving.
+> **Notes:** You paste the slice and run its chunks; Claude writes the commit message
+> and runs git. That separation is the point. Read each sandbox prompt before approving.
 
 ---
 
 ## 11. Section 3 (the maps), Claude commits
 
+Paste `source_qmds/04_maps.qmd` into `primer_check.qmd`, run its chunks one at a time,
+then render:
+
 ```bash
-cat source_qmds/04_maps.qmd >> primer_check.qmd
 conda activate primercrisp && quarto render primer_check.qmd
 ```
 
@@ -256,8 +268,10 @@ I added the gggenomes annotation maps section. Commit and push.
 
 ## 12. Section 4 (Primer3 redesign), Claude commits
 
+Paste `source_qmds/05_primer3.qmd` into `primer_check.qmd`, run its chunks one at a
+time, then render:
+
 ```bash
-cat source_qmds/05_primer3.qmd >> primer_check.qmd
 conda activate primercrisp && quarto render primer_check.qmd
 ```
 
@@ -268,7 +282,8 @@ and re-checks specificity by e-PCR. In Claude:
 I added the Primer3 redesign section. Commit and push.
 ```
 
-After this, `cat source_qmds/*.qmd > primer_check.qmd` reproduces the same file.
+Your finished `primer_check.qmd` is just the five slices in order — identical to
+`cat source_qmds/*.qmd`.
 
 That is the finish: you found the primer set that makes multiple bands, saw exactly
 why (a shared repeat), and designed a specific replacement — all under version
