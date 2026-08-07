@@ -249,38 +249,23 @@ I added the Primer3 redesign section. Commit and push.
 
 After this, `cat source_qmds/*.qmd > primer_check.qmd` reproduces the same file.
 
-> **Notes:** If the room is running long, this is the clean stopping point — §4 can
-> be finished as homework, since each section is already its own commit.
+That is the finish: you found the primer set that makes multiple bands, saw exactly
+why (a shared repeat), and designed a specific replacement — all under version
+control and published.
+
+> **Notes:** This is the ending. If the room ran long, §4 can be homework, since each
+> section is already its own commit. Don't manufacture a further task — the story is
+> complete here.
 
 ---
 
-## 12. Finale: hand Claude a written spec
-
-Open `REDESIGN_PRD.md` and hand it to Claude:
-
-```
-Read REDESIGN_PRD.md. Implement what it asks against primer_check.qmd — do not
-duplicate the pipeline's logic. When it renders cleanly, commit and push.
-```
-
-This is the part where Claude works from a written specification, not a hand-held
-step. Read each proposed action before approving. If it goes off-spec, redirect it in
-plain English.
-
-> **Notes:** Intentionally open-ended — there is no single right answer to
-> demonstrate. The teaching point: a written spec + an agent on a sandbox is a
-> productive pattern, and you stay in the loop because of the approval prompts.
-
----
-
-## 13. Recap and where to go
+## 12. Recap and where to go
 
 You can now:
 
 - Turn a folder into your own version-controlled GitHub repo with plain `git` + `gh`
-- Drive Claude Code from Positron's terminal under a sandbox
+- Drive Claude Code from Positron's terminal under a sandbox, approving each action
 - Publish a rendered analysis at a public GitHub Pages URL
-- Hand Claude a written spec and review its work before approving
 
 Materials and follow-ups:
 
