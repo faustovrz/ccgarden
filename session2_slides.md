@@ -90,6 +90,31 @@ the BLAST database, and the primer spreadsheet. If yours fails, raise your hand 
 > message. Five minutes here saves a derailed workshop. Keep one backup laptop with
 > the env + genome staged for whoever's setup is broken.
 
+### Set Claude Code to Opus 4.8
+
+Anthropic has since shipped **Opus 5**, now the default. For this workshop we use
+**Opus 4.8** on purpose: it **asks for approval on each step**, stays on task instead of
+diving down rabbit holes, and is far less verbose — easier to read and to approve.
+
+In Claude Code, run:
+
+```
+/model claude-opus-4-8
+```
+
+Use the **full name** — the `opus` alias now points to Opus 5. Typing this once also
+**saves it as your default** for future sessions. If Opus 4.8 is not offered, update
+first: `claude update` (it needs Claude Code v2.1.154+). To pin it explicitly instead,
+add to `~/.claude/settings.json`:
+
+```json
+{ "model": "claude-opus-4-8" }
+```
+
+> **Notes:** Set this before we first launch `claude` in the session. Confirm with
+> `/model` (no args) — Opus 4.8 should show as selected. Full model IDs are stable;
+> aliases like `opus` drift to newer models over time, so pin the full name.
+
 ---
 
 ## 5. One-time IDE settings (set them in the WSL window)
