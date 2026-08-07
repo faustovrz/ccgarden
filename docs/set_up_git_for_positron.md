@@ -1,16 +1,3 @@
----
-title: "Setting Up Git and GitHub for R Users"
-author: "Your Name"
-date: today
-format: gfm
----
-
-```{r}
-#| label: setup
-#| include: false
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 # Git and GitHub Setup for R Users
 
 This tutorial will guide you through setting up Git and GitHub for use with
@@ -45,13 +32,9 @@ Install Git based on your operating system:
 
 **For Windows users:**
 
-```{r}
-#| label: install-git-windows
-#| eval: false
+```r
 # Download and install from:
 browseURL("https://git-scm.com/download/win")
-
-
 ```
 
 **For Mac users:**
@@ -86,9 +69,7 @@ and authentication.
 
 Use the `usethis` package to configure your Git username and email:
 
-```{r}
-#| label: config-git
-#| eval: false
+```r
 # Install usethis if needed
 if (!requireNamespace("usethis", quietly = TRUE)) {
   install.packages("usethis")
@@ -105,9 +86,7 @@ Your Git commits will be associated with this name and email.
 
 GitHub requires a Personal Access Token for secure authentication:
 
-```{r}
-#| label: create-token
-#| eval: false
+```r
 # This will open GitHub in your browser to create a token
 usethis::create_github_token()
 ```
@@ -125,9 +104,7 @@ There are two ways to store your PAT:
 
 **Option 1:** Using the `credentials` package:
 
-```{r}
-#| label: store-pat-1
-#| eval: false
+```r
 # Install credentials if needed
 if (!requireNamespace("credentials", quietly = TRUE)) {
   install.packages("credentials")
@@ -139,9 +116,7 @@ credentials::set_github_pat("PositronGitHubPAT")
 
 **Option 2:** Store in your `.Renviron` file:
 
-```{r}
-#| label: store-pat-2
-#| eval: false
+```r
 # Open .Renviron file
 usethis::edit_r_environ()
 
@@ -157,9 +132,7 @@ from the **Console** pane toolbar (the circular-arrow restart icon), from the
 Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P` → "Interpreter: Restart
 Interpreter"), or programmatically:
 
-```{r}
-#| label: restart
-#| eval: false
+```r
 # Works in both Positron and RStudio
 rstudioapi::restartSession()
 ```
@@ -168,9 +141,7 @@ rstudioapi::restartSession()
 
 Check that everything is configured correctly:
 
-```{r}
-#| label: verify
-#| eval: false
+```r
 # Check Git configuration
 usethis::git_sitrep()
 ```

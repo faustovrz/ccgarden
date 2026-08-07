@@ -1,11 +1,4 @@
----
-title: "Setting Up WSL for Positron on Windows"
-author: "Your Name"
-date: today
-format: gfm
----
-
-# Connecting Positron to Windows Subsystem for Linux
+# Setting Up WSL for Positron on Windows
 
 This tutorial walks Windows users through installing WSL and connecting
 Positron to it, so you can edit and run code as if you were on a Linux

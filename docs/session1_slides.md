@@ -302,7 +302,7 @@ What you **can't yet** do (Session 2):
 
 ## 14. Before next session
 
-1. Read the **Prerequisites** section of `set_up_git_for_positron.qmd`
+1. Read the **Prerequisites** section of `set_up_git_for_positron.md`
    (link in the workshop repo)
 2. Make sure your GitHub login still works
 3. Bring your Personal Access Token *if* you already have one

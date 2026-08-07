@@ -43,7 +43,7 @@ Install the tools and get one quick win in each.
 Add version control to the project, push to GitHub, and use Claude Desktop
 to edit, commit, and push — with the published page updating automatically.
 
-1. Walk through [`set_up_git_for_positron.qmd`](set_up_git_for_positron.qmd)
+1. Walk through [`set_up_git_for_positron.md`](docs/set_up_git_for_positron.md)
    to configure Git and a GitHub Personal Access Token.
 2. Turn the `iris-test` folder into a Git repo, commit, and push to GitHub.
 3. Publish from the GitHub repo on Connect Cloud (auto-updates on push).
@@ -54,7 +54,7 @@ to edit, commit, and push — with the published page updating automatically.
 
 | File | What it is |
 |---|---|
-| [`set_up_git_for_positron.qmd`](set_up_git_for_positron.qmd) | Tutorial: install Git, configure name/email, create and store a GitHub PAT |
+| [`set_up_git_for_positron.md`](docs/set_up_git_for_positron.md) | Tutorial: install Git, configure name/email, create and store a GitHub PAT |
 | [`build_first_repo_with_positron.qmd`](build_first_repo_with_positron.qmd) | Tutorial: create an R project in Positron, set up a folder structure, first commit, push to GitHub |
 | [`build_first_repo_with_positron.md`](build_first_repo_with_positron.md) | Rendered (GitHub-readable) version of the tutorial above |
 

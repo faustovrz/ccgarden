@@ -27,11 +27,7 @@ Create all three with your `@ncsu.edu` Google sign-in (one login, no new passwor
    ```
    Follow the printed instructions to add `brew` to your PATH, then check `brew --version`.
 
-2. **Positron:**
-   ```bash
-   brew install --cask positron
-   ```
-   (Or the `.dmg` from <https://positron.posit.co/download.html>.) Launch it once; when it offers to install R, accept.
+2. **Positron** — download the `.dmg` from <https://positron.posit.co/download.html> and install it. (Or, with Homebrew: `brew install --cask positron`.) Launch it once; when it offers to install R, accept.
 
 3. **Run the bootstrap** — installs git, gh, Claude Code, the conda toolchain, and stages the genome (**~3.5 GB, 10–20 min**):
    ```bash
@@ -50,12 +46,9 @@ Every command-line step lives **inside WSL** (Ubuntu), not PowerShell. Positron 
    ```powershell
    wsl --install
    ```
-   Restart when prompted, then pick a Linux username/password in the Ubuntu window. Verify with `wsl -l -v` (should show `Ubuntu`, `VERSION 2`). Details + Positron↔WSL connection: `set_up_wsl_for_positron_windows.qmd`.
+   Restart when prompted, then pick a Linux username/password in the Ubuntu window. Verify with `wsl -l -v` (should show `Ubuntu`, `VERSION 2`). Details + Positron↔WSL connection: `set_up_wsl_for_positron_windows.md`.
 
-2. **Positron** — install on the **Windows side** (PowerShell):
-   ```powershell
-   winget install Posit.Positron
-   ```
+2. **Positron** — download the installer from <https://positron.posit.co/download.html> and run it on the **Windows side**. (Or, from **PowerShell**: `winget install Posit.Positron`.)
 
 3. **Run the bootstrap in your Ubuntu (WSL) terminal** — installs git, gh, Claude Code, the sandbox deps (bubblewrap/socat), the conda toolchain, and stages the genome (**~3.5 GB, 10–20 min**):
    ```bash
@@ -125,7 +118,7 @@ All should print without errors. In **Positron**, the bottom-right shows `R x.x.
 ## Reference links
 
 - `primercrisp` starter (bootstrap): <https://github.com/faustovrz/primercrisp>
-- WSL setup + Positron connection: `set_up_wsl_for_positron_windows.qmd`
+- WSL setup + Positron connection: `set_up_wsl_for_positron_windows.md`
 - Claude Code docs: <https://docs.claude.com/en/docs/claude-code>
 - Positron: <https://positron.posit.co>
 - gh CLI: <https://cli.github.com>
