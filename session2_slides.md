@@ -181,11 +181,19 @@ so you see what every step produces:
 touch primer_check.qmd     # create the empty notebook
 ```
 
-Open `primer_check.qmd` in Positron. Copy the contents of `source_qmds/01_setup.qmd`,
-then `source_qmds/02_epcr.qmd`, into it (in that order). Run the code chunks **one at a
-time** — cursor in a chunk, **Ctrl+Shift+Enter** — and read each result **inline**
-before moving on (this is why you enabled inline output in §5). The `.Rprofile` puts
-the tools (`samtools`, `e-PCR`, …) on `PATH` for the editor's R session.
+Open `primer_check.qmd` in Positron. Paste in **`source_qmds/01_setup.qmd`** first and
+run its chunks **one at a time** — cursor in a chunk, **Ctrl+Shift+Enter** — reading
+each result **inline** (this is why you enabled inline output in §5). The `.Rprofile`
+puts the tools (`samtools`, `e-PCR`, …) on `PATH` for the editor's R session.
+
+**Check the input before running the analysis.** Setup loads the primer pair + guide
+from `data/primers.xlsx` — open it and confirm they are the ones you expect. From
+**Positron's integrated terminal**:
+
+- WSL (Windows): `wslview data/primers.xlsx`  (if `wslview` is missing, `explorer.exe data/primers.xlsx`)
+- macOS: `open data/primers.xlsx`
+
+Then paste in **`source_qmds/02_epcr.qmd`** and run its chunks the same way.
 
 When section 1 runs top to bottom, render the HTML for the published site. Run this
 in **Positron's integrated terminal** (Terminal menu, or `` Ctrl+` ``) — Positron
