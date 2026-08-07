@@ -256,7 +256,41 @@ enable Pages:
 
 ---
 
-## 10. Section 2 (gene overlap), Claude commits
+## 10. Set up the sandbox before the agent does any work
+
+This is the safety step — do it **before** you give Claude Code its first task. Start
+Claude Code in the project:
+
+```
+claude
+```
+
+The **sandbox** is an OS-level boundary around the commands Claude runs: by default a
+Bash command can only **write** inside the project folder, and must **ask** before
+reaching a new network domain. The OS enforces it (Seatbelt on macOS, bubblewrap on
+Linux/WSL2), so it holds even if the agent tries to step outside. In the session:
+
+```
+/sandbox
+```
+
+- **Mode → "Regular permissions"** — keeps the per-action approval you already have,
+  **plus** the OS isolation. Do **not** pick "auto-allow" (that skips prompts for
+  sandboxed commands).
+- The **Config** tab should show `enabled: true` — that's your confirmation.
+
+The sandbox *stacks on top of* per-action approval, it does not replace it: the prompt
+decides **whether** a command runs; the sandbox limits **what** it can touch if it does.
+
+> **Notes:** macOS works out of the box (Seatbelt). On WSL2 the sandbox needs
+> `bubblewrap` and `socat` — the bootstrap installs them; if `/sandbox` shows a
+> Dependencies tab, install and restart. WSL1 is unsupported (`wsl -l -v` must show
+> VERSION 2). Land the message: **sandbox on + approve each step = the safety story,
+> set up before the agent touches anything.**
+
+---
+
+## 11. Section 2 (gene overlap), Claude commits
 
 From here, Claude writes the commits. Paste the next slice and run it: copy
 `source_qmds/03_overlap.qmd` into `primer_check.qmd`, run its new chunks one at a time
@@ -266,13 +300,7 @@ From here, Claude writes the commits. Paste the next slice and run it: copy
 conda activate primercrisp && quarto render primer_check.qmd
 ```
 
-Now start Claude Code in the project and let it commit:
-
-```
-claude
-```
-
-Then tell it:
+In your Claude Code session (sandbox set up in §10), tell it:
 
 ```
 I added the gene-annotation overlap section (source_qmds/03_overlap.qmd) to
@@ -288,7 +316,7 @@ Approve each action. Watch it `git add`, write a message from the diff, `git com
 
 ---
 
-## 11. Section 3 (the maps), Claude commits
+## 12. Section 3 (the maps), Claude commits
 
 Paste `source_qmds/04_maps.qmd` into `primer_check.qmd`, run its chunks one at a time,
 then render:
@@ -310,7 +338,7 @@ I added the gggenomes annotation maps section. Commit and push.
 
 ---
 
-## 12. Section 4 (Primer3 redesign), Claude commits
+## 13. Section 4 (Primer3 redesign), Claude commits
 
 Paste `source_qmds/05_primer3.qmd` into `primer_check.qmd`, run its chunks one at a
 time, then render:
@@ -339,7 +367,7 @@ control and published.
 
 ---
 
-## 13. Recap and where to go
+## 14. Recap and where to go
 
 You can now:
 
