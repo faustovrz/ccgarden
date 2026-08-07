@@ -1,10 +1,10 @@
 # Session 2: Git and Claude Code in a real lab project
 
-**Audience:** same colleagues from Session 1, with the prerequisite email done.
+**Audience:** same colleagues from Session 1, who ran the primercrisp setup at home.
 **Duration:** ~90 min.
-**Goal:** Each of you leaves with a CRISPR annotation project under Git
-control, pushed to your own GitHub repo, published via GitHub Pages, with
-Claude Code committing on your behalf at every stage.
+**Goal:** Each of you leaves with the **primercrisp** primer + guide analysis under
+Git control, in your **own** GitHub repo, published at a public GitHub Pages URL,
+with Claude Code committing on your behalf at each stage.
 
 ---
 
@@ -12,348 +12,283 @@ Claude Code committing on your behalf at every stage.
 
 Session 1 deliverables, recap:
 
-- Positron installed
-- Claude Desktop installed
+- Positron, Claude Code, Git, and `gh` installed and authenticated
 - A published Connect Cloud URL of the iris analysis under your name
 
-Today is different in three ways:
+The pre-session setup for today (the `curl … | bash` bootstrap) should have left
+you with, in `~/primercrisp`:
 
-- **Real project.** We are annotating a CRISPR target gene from the LH244 line, using the same `ggplot2` map you would build in production.
-- **Git is the spine.** Every step ends in a commit, so you have a paper trail you can share or roll back.
-- **Claude Code, not Claude Desktop.** We are using the CLI, run from inside Positron's integrated terminal. The sandbox is on. You approve every action.
+- the toolchain in a `primercrisp` conda env
+- the LH244 genome staged under `data/`
+- the project **detached** from my repo (no `.git`) — it is yours to initialize
+- the `.gitignore` set aside at `setup/gitignore` — you will install it yourself
 
-> **Notes:** Don't apologize for the swap from Desktop to CLI. Frame it as
-> "the right tool for shell-heavy work." The sandbox is the safety story
-> they should believe in: Claude proposes, you approve.
+Three things are different from Session 1:
+
+- **Real analysis.** We check a genotyping primer pair and a CRISPR guide against the
+  whole LH244 maize genome — e-PCR specificity, guide BLAST, gene overlap, and
+  `gggenomes` maps — the same pipeline you would run in production.
+- **Git is the spine.** Every section ends in a commit, so you have a paper trail you
+  can share or roll back.
+- **Claude Code under a sandbox.** Claude proposes, you approve. Every action.
+
+> **Notes:** If anyone's bootstrap did not finish, seat them with a neighbour and
+> use the `AGENT_SETUP_PROMPT.md` fallback during the pre-flight check.
 
 ---
 
 ## 2. What you'll leave with today
 
-1. A working `~/crisprpen` project under Git
-2. Pushed to your own GitHub repo
-3. Published at a public GitHub Pages URL with the rendered annotation map
+1. A working `~/primercrisp` analysis under Git
+2. In your **own** GitHub repo (created live with `gh`, not a fork)
+3. Published at a public GitHub Pages URL with the rendered annotation maps
 4. A commit history where Claude wrote the messages and ran the pushes
 
-> **Notes:** Lead with the URL again, like Session 1. The Pages URL is the
-> wow. The commit history is the proof that you stayed in control.
+> **Notes:** Lead with the URL — it is the wow. The commit history is the proof
+> that you stayed in control the whole time.
 
 ---
 
-## 3. The project, briefly
+## 3. The analysis, briefly
 
-For one gene (`nmx`):
+For one primer set (`mgd`) defined in `data/primers.xlsx`:
 
-- Pull exon positions by BLASTing the gene against its cDNA
-- Place CRISPR guides on the gene with `blastn -task blastn-short`
-- Predict primer-pair amplicons with `e-PCR`
-- Draw all of that on a `gggenomes` annotation map
-- Export a GenBank file with every feature, for opening in SnapGene or Benchling later
+- **§1** e-PCR the primers over the whole genome; BLAST the guide (`blastn-short`)
+- **§2** intersect every amplicon and guide site with the gene annotation (`bedtools`)
+- **§3** draw it all as `gggenomes` maps — the target locus, an exon zoom, and every
+  likely amplicon side by side
+- **§4** redesign the primers around the guide with Primer3 and re-check specificity
 
-The pipeline is split into four stages. Each stage ends with a render and a
-commit. We add features to the map one stage at a time.
+The pipeline ships as five `cat`-able slices in `source_qmds/`. Each slice is one
+section; we assemble the notebook one section at a time and commit after each.
 
-> **Notes:** Show one of the rendered annotation maps from your real LH244
-> work on the projector. That is the target.
+> **Notes:** Show a rendered `docs/primer_check.html` from your own run on the
+> projector first. That is the target. Point out that the primers/guide come from
+> the spreadsheet, not the code.
 
 ---
 
 ## 4. Pre-flight check
 
-Everyone, in `~/crisprpen`:
+Everyone, in a fresh terminal from `~/primercrisp`:
 
 ```bash
-claude --version
-./env/bin/blastn -version
-./env/bin/re-PCR -h 2>&1 | head -3
-R -e 'library(gggenomes); cat("ok\n")'
+conda activate primercrisp
+samtools --version | head -1
+blastn -version
+e-PCR 2>&1 | head -1        # usage banner = success (no --version)
+bedtools --version
+primer3_core --version
+Rscript -e 'library(gggenomes); library(pwalign); cat("R OK\n")'
+ls data/ref data/blastdb data/primers.xlsx
 ```
 
-All four should print without errors. If yours fails, raise your hand now.
+All of it should print without errors, and the `ls` should list the staged genome,
+the BLAST database, and the primer spreadsheet. If yours fails, raise your hand now.
 
-> **Notes:** Do not skip this even if everyone replied "all green" to the
-> prereq email. Five minutes here saves a derailed workshop. Have one
-> backup laptop ready for whoever's setup is broken.
+> **Notes:** Do not skip this even if everyone replied "all green" to the setup
+> message. Five minutes here saves a derailed workshop. Keep one backup laptop with
+> the env + genome staged for whoever's setup is broken.
 
 ---
 
-## 5. Git setup, identity and PAT
+## 5. Make it your repo: `git init` and the `.gitignore`
 
-From `set_up_git_for_positron.qmd`:
-
-1. Tell Git who you are:
-   ```r
-   usethis::use_git_config(user.name = "Your Name", user.email = "you@email.com")
-   ```
-2. Create a GitHub Personal Access Token:
-   ```r
-   usethis::create_github_token()
-   ```
-3. Store the PAT in `.Renviron`:
-   ```r
-   usethis::edit_r_environ()
-   # Add: GITHUB_PAT=ghp_xxxxxxxxxxxx
-   ```
-4. Restart R, then verify:
-   ```r
-   usethis::git_sitrep()
-   ```
-
-> **Notes:** Same advice as the original Session 2 outline. The PAT step
-> is the slowest. Project this slide while they work. Budget 15 min.
-> The PAT must be copied immediately because GitHub never shows it again.
-
----
-
-## 6. Open the project, start Claude Code
-
-**Mac:** File > Open Folder > `~/crisprpen`.
-
-**Windows:** click the green Remote button (bottom-left of Positron),
-pick `Connect to WSL`, then open `~/crisprpen` from inside the WSL
-connection.
-
-Open the integrated terminal. Type:
-
-```bash
-claude
-```
-
-Approve the sandbox prompt. Leave Claude running. You now have a
-two-pane workspace: editor on the left, Claude in the terminal on the
-right.
-
-> **Notes:** Sandbox approval prompts will appear before any tool call.
-> Tell them: read the prompt, then approve. Approving "yes for this
-> session" is fine for `git`, `R`, and the conda env's tools. Anything
-> outside the project tree, decline.
-
----
-
-## 7. Get the gene data
-
-I will share a private Drive link in the channel. Open it in your
-browser, download the archive, and extract it inside `~/crisprpen` so
-you end up with:
-
-```
-data/nmx/{genomic.fa, cdna.fa, guides.fa, primer_pairs.sts, gene.gff3}
-data/all/{genomic.fa, cdna.fa, guides.fa, primer_pairs.sts, genes.gff3}
-```
-
-`data/nmx/` drives stages 1 to 4. `data/all/` is the warehouse the
-stage 5 prompt will use.
-
-Quick verify:
-
-```bash
-ls data/nmx/
-ls data/all/
-```
-
-Both should list five files each.
-
-> **Notes:** Drop the Drive link in chat now, not in the slide deck.
-> Students who hit a permission wall: re-share with their NCSU Google
-> account explicitly. The data folder is gitignored so nothing they
-> download leaks to GitHub.
-
----
-
-## 8. Build and render stage 1
-
-The pipeline is delivered as four concatenable slices in `source_qmds/`.
-Build your `annotate_nmx.qmd` from the first slice:
-
-```bash
-cat source_qmds/01_setup.qmd > annotate_nmx.qmd
-```
-
-Render with **Cmd+Shift+K** (Mac) or **Ctrl+Shift+K** (Windows). The
-output goes to `docs/annotate_nmx.html`.
-
-Open `docs/annotate_nmx.html` in a browser. You should see the gene
-name, locus ID, length, and a count of exons, guides, and primer pairs.
-
-> **Notes:** This first render is the smoke test. If anything is broken
-> in the inputs or the env, it surfaces here, not three stages later.
-> The `cat ... >` form is single redirect (overwrite). Later stages use
-> `cat ... >>` (append).
-
----
-
-## 9. First commit, by hand
-
-You do this one yourself so you see plain git, no agent in the way.
+The bootstrap detached the project from my repo. You now turn it into *your own*.
+Do this one yourself so you see plain git, no agent in the way.
 
 ```bash
 git init -b main
-git status
-git add annotate_nmx.qmd source_qmds/ MANY_GENES_PRD.md crisprpen.yml _quarto.yml README.md .gitignore docs/
-git commit -m "first commit: setup chunk renders for nmx"
+```
+
+Now install the `.gitignore` **before** you stage anything — this is the step that
+keeps the 3.5 GB genome out of your commits:
+
+```bash
+cat setup/gitignore          # read what it excludes, and why
+cp  setup/gitignore .gitignore
+git status                   # data/ and results/ should NOT appear
+```
+
+> **Notes:** Make them read the `.gitignore` first. Ask: "what happens if you
+> `git add .` without this?" (Answer: you try to commit a 2.3 GB file and the push
+> is rejected at GitHub's 100 MB limit.) The ignore file is a conscious choice, not
+> boilerplate.
+
+---
+
+## 6. Build and render section 1
+
+Assemble the notebook from the first two slices (setup + §1):
+
+```bash
+cat source_qmds/01_setup.qmd  >  primer_check.qmd
+cat source_qmds/02_epcr.qmd   >> primer_check.qmd
+```
+
+Render **with the env active** so the notebook finds `samtools`, `e-PCR`, etc.:
+
+```bash
+conda activate primercrisp
+quarto render primer_check.qmd     # output → docs/primer_check.html
+```
+
+Open `docs/primer_check.html`. You should see the e-PCR amplicon table, the likely
+(0-gap) products, and the guide's genome-wide candidate sites.
+
+> **Notes:** This first render is the smoke test — if an input or the env is wrong,
+> it surfaces here, not three sections later. `cat >` overwrites; later sections use
+> `cat >>` to append.
+
+---
+
+## 7. First commit, by hand
+
+You do this one yourself so you see plain git.
+
+```bash
+git add .gitignore primercrisp.yml _quarto.yml README.md setup/ source_qmds/ \
+        data/primers.xlsx primer_check.qmd docs/
+git commit -m "first commit: setup + e-PCR/guide section renders"
 git log --oneline
 ```
 
-Note what is **not** in the commit: `data/`, `results/`, `env/`. They
-are in `.gitignore` and will never be tracked.
+Note what is **not** in the commit: `data/ref/`, `data/blastdb/`, `results/`. The
+`.gitignore` keeps them out — the genome stays on your laptop.
 
-> **Notes:** Point at the Source Control panel in Positron lighting up
-> alongside the terminal output. Same information, two views. They will
-> learn to use whichever they prefer.
-
----
-
-## 10. Create the GitHub repo via the web UI
-
-We use the web UI on purpose, so you see what `gh repo create` is
-automating later.
-
-1. Go to https://github.com, click **New repository**.
-2. Name it `crisprpen-workshop`. **Public**. **Do not** add a README,
-   `.gitignore`, or license. We have those locally already.
-3. Click **Create repository**.
-4. Follow GitHub's "**push an existing repository from the command line**"
-   block, copy-paste the three commands into your Positron terminal.
-5. Refresh the GitHub page. Your files appear.
-
-Then enable Pages:
-
-6. **Settings > Pages**. Source: **Deploy from a branch**. Branch:
-   **main**, folder: **/docs**. Save.
-7. Wait 1 to 2 minutes. Your URL appears at the top of the Pages
-   settings: `https://YOU.github.io/crisprpen-workshop/annotate_nmx.html`.
-
-> **Notes:** Pages on a public repo is free. If anyone wants their repo
-> private, they need a Pro account for Pages to serve. Stick to public
-> today.
+> **Notes:** Point at Positron's Source Control panel lighting up alongside the
+> terminal. Same information, two views.
 
 ---
 
-## 11. Stage 2, cDNA annotation, Claude commits
+## 8. Create your GitHub repo with `gh`
 
-Append stage 2 to the working qmd and render:
+No fork, no web UI — one command turns your local repo into a GitHub repo and pushes:
 
 ```bash
-cat source_qmds/02_cdna.qmd >> annotate_nmx.qmd
+gh repo create primercrisp --public --source=. --remote=origin --push
 ```
 
-Render. The output now reports how many exons BLAST found against the
-cDNA.
+Refresh your GitHub profile — `primercrisp` is there, with your first commit. Then
+enable Pages:
 
-In the Claude terminal:
+1. **Settings > Pages**. Source: **Deploy from a branch**. Branch **main**, folder
+   **/docs**. Save.
+2. Wait 1–2 min. Your URL appears:
+   `https://YOU.github.io/primercrisp/primer_check.html`.
 
-```
-I just appended source_qmds/02_cdna.qmd to annotate_nmx.qmd and
-re-rendered. Commit with a clear message that describes what changed,
-then push.
-```
-
-Approve. Watch Claude run `git add`, write a commit message based on
-the diff, `git commit`, `git push`. Refresh your Pages URL after a
-minute. The new exon counts are live.
-
-> **Notes:** Claude does not write the qmd code. You append the slice
-> with `cat`. Claude writes the commit message and runs the git
-> commands. That separation is the point.
+> **Notes:** Pages on a public repo is free. `--source=.` is what makes this *your*
+> independent repo rather than a fork — good moment to contrast with forking.
 
 ---
 
-## 12. Stage 3, oligos, Claude commits
+## 9. Section 2 (gene overlap), Claude commits
 
-Append stage 3 and render:
+From here, Claude writes the commits. Append §2 and render:
 
 ```bash
-cat source_qmds/03_oligos.qmd >> annotate_nmx.qmd
+cat source_qmds/03_overlap.qmd >> primer_check.qmd
+conda activate primercrisp && quarto render primer_check.qmd
 ```
 
-Render. The annotation map appears for the first time: gene line,
-exon ribbon, guide bars, amplicon span, and forward/reverse primer
-arrows at the amplicon edges.
-
-In the Claude terminal:
+Now start Claude Code in the project and let it commit:
 
 ```
-I added guide and amplicon annotation. Commit and push.
+claude
 ```
 
-Approve. Refresh your Pages URL.
+Then tell it:
 
-> **Notes:** This is the visual climax. The map looks like a real
-> annotation now. Linger here.
+```
+I appended source_qmds/03_overlap.qmd (the gene-annotation overlap section) to
+primer_check.qmd and re-rendered. Commit with a clear message describing what
+changed, then push.
+```
+
+Approve each action. Watch it `git add`, write a message from the diff, `git commit`,
+`git push`. Refresh your Pages URL after a minute.
+
+> **Notes:** You append the slice with `cat`; Claude writes the commit message and
+> runs git. That separation is the point. Read each sandbox prompt before approving.
 
 ---
 
-## 13. Stage 4, GenBank export, Claude commits
-
-Append stage 4 and render:
+## 10. Section 3 (the maps), Claude commits
 
 ```bash
-cat source_qmds/04_genbank.qmd >> annotate_nmx.qmd
+cat source_qmds/04_maps.qmd >> primer_check.qmd
+conda activate primercrisp && quarto render primer_check.qmd
 ```
 
-Render.
-
-You should see `Wrote ../results/nmx/<locus>_nmx.gbk`. Open the file
-locally. Every feature you saw on the map is in there.
-
-The `.gbk` file lives under `results/`, which is gitignored. It does
-not get pushed and does not reach Pages. The nucleotide content stays
-on your laptop.
-
-In the Claude terminal:
+The annotation maps appear: the target locus with exons/CDS/amplicon/guide, the
+exon-1 zoom, and every likely amplicon side by side with its repeat and homology
+tracks. In Claude:
 
 ```
-I added the GenBank export step. Commit and push.
+I added the gggenomes annotation maps section. Commit and push.
 ```
 
-Approve.
-
-> **Notes:** Show one of the resulting `.gbk` files in SnapGene or
-> Benchling on the projector if you have one running. The wow is that
-> they wrote a real ready-for-cloning artifact.
+> **Notes:** This is the visual climax — the maps look like real annotation now.
+> Linger here; refresh the Pages URL so they see it live.
 
 ---
 
-## 14. Stage 5, many genes
+## 11. Section 4 (Primer3 redesign), Claude commits
 
-Hand Claude the spec:
-
-```
-Read MANY_GENES_PRD.md in the project root. Implement what it asks.
-The single-gene pipeline is in annotate_nmx.qmd. Do not duplicate
-its logic. When the runner works for the gene IDs in data/genes.txt,
-commit and push.
+```bash
+cat source_qmds/05_primer3.qmd >> primer_check.qmd
+conda activate primercrisp && quarto render primer_check.qmd
 ```
 
-This is the part where Claude works on its own from a written
-specification, not a hand-held step. Watch what it does. Read each
-proposed action before approving. If it goes off-spec, redirect it in
+The notebook now designs new primers around the guide, filters to single-copy oligos,
+and re-checks specificity by e-PCR. In Claude:
+
+```
+I added the Primer3 redesign section. Commit and push.
+```
+
+After this, `cat source_qmds/*.qmd > primer_check.qmd` reproduces the same file.
+
+> **Notes:** If the room is running long, this is the clean stopping point — §4 can
+> be finished as homework, since each section is already its own commit.
+
+---
+
+## 12. Finale: hand Claude a written spec
+
+Open `REDESIGN_PRD.md` and hand it to Claude:
+
+```
+Read REDESIGN_PRD.md. Implement what it asks against primer_check.qmd — do not
+duplicate the pipeline's logic. When it renders cleanly, commit and push.
+```
+
+This is the part where Claude works from a written specification, not a hand-held
+step. Read each proposed action before approving. If it goes off-spec, redirect it in
 plain English.
 
-> **Notes:** This slide is intentionally open-ended. There is no fixed
-> right answer to demonstrate. The teaching point is that a written PRD
-> plus an agent on a sandbox is a productive pattern, and that you stay
-> in the loop because of the sandbox prompts.
+> **Notes:** Intentionally open-ended — there is no single right answer to
+> demonstrate. The teaching point: a written spec + an agent on a sandbox is a
+> productive pattern, and you stay in the loop because of the approval prompts.
 
 ---
 
-## 15. Recap and where to go
+## 13. Recap and where to go
 
 You can now:
 
-- Version-control a real R + bioinformatics project with Git
+- Turn a folder into your own version-controlled GitHub repo with plain `git` + `gh`
 - Drive Claude Code from Positron's terminal under a sandbox
-- Publish a rendered notebook at a public GitHub Pages URL
+- Publish a rendered analysis at a public GitHub Pages URL
 - Hand Claude a written spec and review its work before approving
 
 Materials and follow-ups:
 
 - Workshop repo: https://github.com/faustovrz/ccgarden
-- Tutorial: `set_up_git_for_positron.qmd`
+- The starter you used: https://github.com/faustovrz/primercrisp
 - Office hours: [your slot]
 
-Stick around if you want help getting your *own* lab repo onto this
-flow.
+Stick around if you want help getting your *own* lab analysis onto this flow.
 
-> **Notes:** The real win is when their actual research repos start
-> using this loop. Soft-sell one-on-one help here.
+> **Notes:** The real win is when their actual research repos start using this loop.
+> Soft-sell one-on-one help here.
