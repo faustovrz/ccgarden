@@ -80,6 +80,7 @@ e-PCR 2>&1 | head -1        # usage banner = success (no --version)
 bedtools --version
 primer3_core --version
 Rscript -e 'library(gggenomes); library(pwalign); loadNamespace("rmarkdown"); loadNamespace("knitr"); cat("R OK\n")'
+claude --version            # Claude Code — Windows users: this must be the WSL copy
 ls data/ref data/blastdb data/primers.xlsx
 ```
 

@@ -87,6 +87,29 @@ Linux shell, and `pwd` returns a Linux path like
 To go back to local Positron (Windows side), use **File > Close Remote
 Connection**, or just close the window.
 
+### 6. Install Claude Code inside WSL
+
+The workshop drives everything through Claude Code **inside WSL** — a copy installed
+on the Windows side does not count, because the session runs in the Linux sandbox. In
+your **Ubuntu (WSL)** terminal:
+
+```bash
+curl -fsSL https://claude.ai/install.sh | bash
+```
+
+Close and reopen the terminal so `claude` lands on your `PATH`, then authenticate (a
+browser opens for sign-in — use your Anthropic account) and confirm:
+
+```bash
+claude
+claude --version
+```
+
+If `claude` is still not found after reopening the terminal, add its install dir to
+your PATH (`echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc`, then reopen), or
+install via Node, which the primercrisp setup already provides:
+`npm install -g @anthropic-ai/claude-code`.
+
 ## Where to put your project files
 
 Always put project files **inside WSL's filesystem** (under `~/`), not
